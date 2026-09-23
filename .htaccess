@@ -1,0 +1,156 @@
+# =====================================================
+#  WEBTES — .htaccess Production Aman + SSL Lancar
+#  Apache 2.4 (kompatibel 2.2) • cPanel / Shared Hosting
+#  Aman di localhost/XAMPP: redirect HTTPS TIDAK aktif
+#  untuk localhost & 127.0.0.1
+# =====================================================
+
+# --- 1. Dasar ---
+ServerSignature Off
+Options -Indexes
+DirectoryIndex index.php index.html
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # --- 2. Force HTTPS (Production saja) ---
+    # Lewati localhost / 127.0.0.1 agar XAMPP tetap jalan via http
+    # Mendukung juga proxy/Cloudflare (X-Forwarded-Proto)
+    RewriteCond %{HTTP_HOST} !^localhost(:[0-9]+)?$ [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1(:[0-9]+)?$ [NC]
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L,NE]
+
+    # --- 3. Blokir query-string berbahaya (SQLi/RFI/XSS umum) ---
+    # Jangan blokir admin yang sah; hanya pola serangan klasik.
+    RewriteCond %{QUERY_STRING} (\.\./|\.\.\\) [NC,OR]
+    RewriteCond %{QUERY_STRING} (base64_(en|de)code|%3Cscript|<script) [NC,OR]
+    RewriteCond %{QUERY_STRING} (GLOBALS|_REQUEST)= [NC,OR]
+    RewriteCond %{QUERY_STRING} (https?|ftp):/ [NC]
+    RewriteRule ^ - [F,L]
+
+    # --- 4. Blokir akses langsung ke folder sensitif ---
+    RewriteRule ^(\.git|\.svn|\.hg|\.env|\.well-known/acme-challenge) - [F,L,NC]
+    # Catatan: .well-known di atas diblokir umum, tapi ACME challenge
+    # dibuka kembali di bawah agar renewal SSL Let's Encrypt tetap jalan.
+    RewriteRule ^\.well-known/acme-challenge/ - [L]
+</IfModule>
+
+# --- 5. Proteksi file sensitif ---
+<FilesMatch "^(config\.php|database\.sql|\.htaccess|\.htpasswd|\.env|php\.ini|composer\.(json|lock)|package(-lock)?\.json)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Blokir ekstensi backup/log/dump di seluruh situs
+<FilesMatch "\.(sql|bak|backup|old|orig|save|swp|log|dist|env|gitignore)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Blokir file dotfile (mis. .gitignore, .htaccess terlihat)
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Buka kembali ACME challenge untuk perpanjangan SSL otomatis
+<DirectoryMatch "\.well-known/acme-challenge">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</DirectoryMatch>
+
+# --- 6. Lindungi folder upload dari eksekusi script ---
+# Lapisan 1 (lapisan 2 ada di assets/img/produk/.htaccess)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<FilesMatch "\.(php|phtml|phar|php\d+|cgi|pl|py|sh|asp|aspx|jsp)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# --- 7. Security Headers (aman, tidak merusak Google Fonts/inline JS) ---
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    # HSTS: aktif HANYA bila sudah HTTPS. Max-age 6 bulan + preload opsional.
+    # Hapus "preload" bila belum siap submit ke hstspreload.org
+    Header always set Strict-Transport-Security "max-age=15552000; includeSubDomains" env=HTTPS
+    # Upgrade konten http -> https otomatis (mencegah mixed content, SSL tetap hijau)
+    Header always set Content-Security-Policy "upgrade-insecure-requests"
+    # Hilangkan info versi PHP/Apache dari header
+    Header unset X-Powered-By
+    Header unset Server
+</IfModule>
+
+# --- 8. Batasi HTTP method ---
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_METHOD} !^(GET|HEAD|POST|OPTIONS)$ [NC]
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+# --- 9. Kompresi (mempercepat + ringan untuk SSL) ---
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# --- 10. Browser caching ---
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 hour"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(jpg|jpeg|png|webp|svg|css|js|woff2?)$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+</IfModule>
+
+# --- 11. Proteksi clickjacking tambahan untuk admin ---
+<LocationMatch "^/(WEBTES/)?admin/">
+    <IfModule mod_headers.c>
+        Header always set X-Frame-Options "DENY"
+    </IfModule>
+</LocationMatch>
+
+# --- 12. Error page sederhana (jangan bocorkan path) ---
+ErrorDocument 403 "403 - Akses ditolak."
+ErrorDocument 404 "404 - Halaman tidak ditemukan."
