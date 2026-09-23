@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <clipPath id="picircle">
+      <circle cx="100" cy="100" r="99"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#picircle)">
+    <rect x="0" y="0" width="200" height="200" fill="#000000"/>
+    <!-- Huruf P putih (bleed ke tepi kiri/atas/bawah) -->
+    <text x="-16" y="192" font-family="'Arial Black', Arial, sans-serif" font-weight="900" font-style="italic" font-size="172" fill="#ffffff" transform="skewX(-6)">P</text>
+    <!-- Kaki L merah -->
+    <polygon points="92,122 205,122 205,150 86,150" fill="#f3121f"/>
+    <!-- Batang i merah miring -->
+    <polygon points="128,58 158,58 138,128 108,128" fill="#f3121f"/>
+    <!-- Titik merah -->
+    <ellipse cx="143" cy="36" rx="21" ry="25" fill="#f3121f"/>
+  </g>
+  <circle cx="100" cy="100" r="98" fill="none" stroke="#000000" stroke-width="3"/>
+</svg>

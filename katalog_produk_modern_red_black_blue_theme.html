@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS - Katalog Produk Futuristik</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter & Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            red: '#FF1E42',
+                            redGlow: '#FF0033',
+                            dark: '#0B0C10',
+                            card: '#12141C',
+                            blue: '#00F0FF',
+                            blueDark: '#0066FF',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Orbitron', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Neon Glows & Glassmorphism Effects */
+        .glass-nav {
+            background: rgba(11, 12, 16, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 30, 66, 0.2);
+        }
+
+        .glass-card {
+            background: rgba(18, 20, 28, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 30, 66, 0.5);
+            box-shadow: 0 0 25px rgba(255, 30, 66, 0.25), inset 0 0 15px rgba(0, 240, 255, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .glow-red {
+            box-shadow: 0 0 20px rgba(255, 30, 66, 0.6);
+        }
+
+        .glow-blue {
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+        }
+
+        .text-gradient-red-blue {
+            background: linear-gradient(135deg, #FF1E42 0%, #00F0FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-red {
+            background: linear-gradient(135deg, #FF5252 0%, #FF1E42 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Abstract Background Mesh */
+        .bg-mesh {
+            background-color: #0B0C10;
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(255, 30, 66, 0.18) 0px, transparent 50%),
+                radial-gradient(at 90% 20%, rgba(0, 240, 255, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 80%, rgba(255, 0, 51, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0C10;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #222634;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF1E42;
+        }
+    </style>
+</head>
+<body class="bg-mesh text-gray-100 font-sans min-h-screen flex flex-col selection:bg-brand-red selection:text-white">
+
+    <!-- Sticky Header Navigation -->
+    <header class="sticky top-0 z-50 glass-nav transition-all duration-300" id="main-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Brand Logo -->
+                <a href="#" class="flex items-center space-x-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-red to-brand-blue flex items-center justify-center glow-red group-hover:scale-105 transition-transform">
+                        <i class="fa-solid font-bold text-black text-xl fa-bolt"></i>
+                    </div>
+                    <span class="font-heading text-2xl font-black tracking-wider text-white">
+                        NEX<span class="text-brand-red">US</span><span class="text-brand-blue font-light">.</span>
+                    </span>
+                </a>
+
+                <!-- Desktop Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-md mx-8 relative">
+                    <input type="text" id="searchInput" placeholder="Cari produk futuristik..." 
+                        class="w-full bg-slate-900/80 border border-slate-700/80 rounded-full py-2.5 pl-11 pr-10 text-sm text-gray-200 placeholder-gray-400 focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-all">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
+                    <button id="clearSearch" class="hidden absolute right-3 top-2.5 text-gray-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Desktop Navigation Menu -->
+                <nav class="hidden lg:flex items-center space-x-8 text-sm font-medium">
+                    <a href="#hero" class="text-white hover:text-brand-red transition-colors">Beranda</a>
+                    <a href="#katalog" class="text-gray-300 hover:text-brand-red transition-colors">Katalog</a>
+                    <a href="#promo" class="text-gray-300 hover:text-brand-blue transition-colors flex items-center gap-1">
+                        <span>Promo</span>
+                        <span class="bg-brand-red text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white animate-pulse">HOT</span>
+                    </a>
+                    <a href="#kontak" class="text-gray-300 hover:text-brand-red transition-colors">Kontak</a>
+                </nav>
+
+                <!-- Actions (Cart, Wishlist & Mobile Toggle) -->
+                <div class="flex items-center space-x-4">
+                    <!-- Wishlist Icon -->
+                    <button class="relative p-2.5 text-gray-300 hover:text-brand-red transition-colors rounded-xl hover:bg-white/5" title="Wishlist">
+                        <i class="fa-regular fa-heart text-xl"></i>
+                        <span id="wishlist-count" class="absolute top-1 right-1 w-4 h-4 bg-brand-blue text-black font-bold text-[10px] rounded-full flex items-center justify-center">0</span>
+                    </button>
+
+                    <!-- Cart Icon -->
+                    <button id="openCartBtn" class="relative p-2.5 text-gray-300 hover:text-brand-blue transition-colors rounded-xl hover:bg-white/5" title="Keranjang">
+                        <i class="fa-solid fa-bag-shopping text-xl"></i>
+                        <span id="cart-count" class="absolute top-1 right-1 w-4 h-4 bg-brand-red text-white font-bold text-[10px] rounded-full flex items-center justify-center">0</span>
+                    </button>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobileMenuBtn" class="lg:hidden p-2.5 text-gray-300 hover:text-white focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Search Bar -->
+            <div class="md:hidden pb-4">
+                <div class="relative w-full">
+                    <input type="text" id="mobileSearchInput" placeholder="Cari produk..." 
+                        class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl py-2 pl-10 pr-4 text-sm text-gray-200 placeholder-gray-400 focus:outline-none focus:border-brand-red">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobileMenu" class="hidden lg:hidden bg-slate-950/95 border-b border-slate-800 px-6 py-6 space-y-4">
+            <a href="#hero" class="block text-base font-medium text-white hover:text-brand-red">Beranda</a>
+            <a href="#katalog" class="block text-base font-medium text-gray-300 hover:text-brand-red">Katalog</a>
+            <a href="#promo" class="block text-base font-medium text-gray-300 hover:text-brand-blue">Promo Spesial</a>
+            <a href="#kontak" class="block text-base font-medium text-gray-300 hover:text-brand-red">Kontak</a>
+        </div>
+    </header>
+
+    <!-- Hero Banner Section -->
+    <section id="hero" class="relative overflow-hidden py-16 md:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Left Hero Text -->
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand-red/30 bg-brand-red/10 text-brand-red text-xs font-semibold tracking-wide uppercase">
+                        <span class="w-2 h-2 rounded-full bg-brand-red animate-ping"></span>
+                        Teknologi Generasi Baru 2026
+                    </div>
+                    
+                    <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none">
+                        Rasakan Sensasi <br>
+                        <span class="text-gradient-red">Performa Tanpa Batas</span>
+                    </h1>
+                    
+                    <p class="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
+                        Koleksi gadget, aksesoris gaming, dan perangkat pintar premium pilihan. Dirancang khusus untuk efisiensi tinggi, gaya futuristik, dan aksentuasi warna terbaik.
+                    </p>
+
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
+                        <a href="#katalog" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-brand-red to-red-700 text-white font-bold tracking-wide hover:from-red-600 hover:to-brand-red shadow-lg glow-red transition-all duration-300 transform hover:-translate-y-0.5 text-center">
+                            Jelajahi Katalog <i class="fa-solid fa-arrow-right ml-2 text-sm"></i>
+                        </a>
+                        <a href="#promo" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900/90 text-brand-blue border border-brand-blue/40 font-semibold hover:bg-brand-blue/10 hover:border-brand-blue transition-all duration-300 text-center">
+                            Lihat Promo Neon
+                        </a>
+                    </div>
+
+                    <!-- Highlight Badges -->
+                    <div class="grid grid-cols-3 gap-4 pt-8 border-t border-slate-800/80 max-w-md mx-auto lg:mx-0">
+                        <div>
+                            <p class="font-heading text-xl font-bold text-white">100%</p>
+                            <p class="text-xs text-gray-400">Produk Original</p>
+                        </div>
+                        <div>
+                            <p class="font-heading text-xl font-bold text-brand-blue">24/7</p>
+                            <p class="text-xs text-gray-400">Dukungan Garansi</p>
+                        </div>
+                        <div>
+                            <p class="font-heading text-xl font-bold text-brand-red">Gratis</p>
+                            <p class="text-xs text-gray-400">Ongkir Seluruh ID</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Hero Banner Card Graphic -->
+                <div class="lg:col-span-5 relative">
+                    <div class="relative mx-auto max-w-md lg:max-w-none">
+                        <!-- Neon Glow Background Behind Image -->
+                        <div class="absolute -inset-1 bg-gradient-to-r from-brand-red to-brand-blue rounded-3xl blur-2xl opacity-40 animate-pulse"></div>
+                        
+                        <div class="relative glass-card rounded-3xl p-6 border border-slate-700/50 shadow-2xl overflow-hidden">
+                            <span class="absolute top-4 right-4 bg-brand-red text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                Highlight
+                            </span>
+                            <img src="https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80" 
+                                 alt="Hero Product Preview" 
+                                 class="w-full h-72 object-cover rounded-2xl mb-6 shadow-md transform hover:scale-105 transition-transform duration-500">
+                            
+                            <div class="space-y-2">
+                                <span class="text-xs font-bold text-brand-blue uppercase tracking-widest">Headset Wireless Pro</span>
+                                <h3 class="font-heading text-xl font-bold text-white">CyberSound X-1 Neon Edition</h3>
+                                <div class="flex items-center justify-between pt-2">
+                                    <div>
+                                        <span class="text-xs text-gray-400 line-through">Rp 2.499.000</span>
+                                        <p class="text-2xl font-black text-brand-red">Rp 1.799.000</p>
+                                    </div>
+                                    <button onclick="addToCart('CyberSound X-1 Neon Edition', 1799000, 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=800&q=80')" 
+                                        class="px-4 py-2.5 bg-brand-blue/20 hover:bg-brand-blue text-brand-blue hover:text-black font-bold rounded-xl border border-brand-blue/50 transition-colors duration-300">
+                                        <i class="fa-solid fa-cart-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Catalog Section -->
+    <section id="katalog" class="py-16 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Section Title -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 pb-6 border-b border-slate-800">
+                <div>
+                    <h2 class="font-heading text-3xl font-extrabold text-white tracking-wide">
+                        Katalog <span class="text-gradient-red">Unggulan</span>
+                    </h2>
+                    <p class="text-gray-400 text-sm mt-1">Pilih kategori favorit Anda dan temukan penawaran eksklusif.</p>
+                </div>
+
+                <!-- Category Filters Buttons -->
+                <div class="flex flex-wrap gap-2 mt-6 md:mt-0" id="categoryFilter">
+                    <button data-category="all" class="filter-btn active px-5 py-2 rounded-xl text-sm font-semibold transition-all bg-brand-red text-white shadow-md">
+                        Semua
+                    </button>
+                    <button data-category="audio" class="filter-btn px-5 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-900 text-gray-400 hover:text-white border border-slate-800 hover:border-slate-700">
+                        Audio
+                    </button>
+                    <button data-category="gaming" class="filter-btn px-5 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-900 text-gray-400 hover:text-white border border-slate-800 hover:border-slate-700">
+                        Gaming Gear
+                    </button>
+                    <button data-category="wearable" class="filter-btn px-5 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-900 text-gray-400 hover:text-white border border-slate-800 hover:border-slate-700">
+                        Wearable
+                    </button>
+                    <button data-category="aksesoris" class="filter-btn px-5 py-2 rounded-xl text-sm font-semibold transition-all bg-slate-900 text-gray-400 hover:text-white border border-slate-800 hover:border-slate-700">
+                        Aksesoris
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Grid Container -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="productGrid">
+                <!-- Products will be injected via JS -->
+            </div>
+
+            <!-- Empty Search Result Message -->
+            <div id="noResults" class="hidden text-center py-16">
+                <i class="fa-solid fa-box-open text-5xl text-gray-600 mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-300">Produk Tidak Ditemukan</h3>
+                <p class="text-gray-500 text-sm mt-1">Coba gunakan kata kunci pencarian atau kategori lain.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Promo Banner Section -->
+    <section id="promo" class="py-16 my-8 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="relative rounded-3xl overflow-hidden border border-brand-red/30 bg-gradient-to-r from-black via-slate-950 to-slate-900 p-8 md:p-12">
+                <!-- Background Accent Lights -->
+                <div class="absolute -top-24 -left-24 w-72 h-72 bg-brand-red rounded-full blur-3xl opacity-20"></div>
+                <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-brand-blue rounded-full blur-3xl opacity-20"></div>
+
+                <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <span class="text-brand-blue font-bold text-xs uppercase tracking-widest px-3 py-1 bg-brand-blue/10 rounded-full border border-brand-blue/20">
+                            Diskon Terbatas
+                        </span>
+                        <h2 class="font-heading text-3xl md:text-4xl font-extrabold text-white mt-4">
+                            FLASH SALE <span class="text-gradient-red">NEON NIGHT</span>
+                        </h2>
+                        <p class="text-gray-300 mt-2 text-sm md:text-base leading-relaxed">
+                            Dapatkan potongan hingga <strong class="text-brand-red">50%</strong> untuk semua produk perlengkapan setup gaming dan aksesoris audio pilihan.
+                        </p>
+                        
+                        <!-- Countdown Timer Dummy -->
+                        <div class="flex gap-4 my-6">
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center min-w-[64px]">
+                                <span class="font-heading text-xl font-bold text-white" id="hours">08</span>
+                                <span class="block text-[10px] text-gray-400 uppercase">Jam</span>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center min-w-[64px]">
+                                <span class="font-heading text-xl font-bold text-white" id="minutes">45</span>
+                                <span class="block text-[10px] text-gray-400 uppercase">Menit</span>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center min-w-[64px]">
+                                <span class="font-heading text-xl font-bold text-brand-red" id="seconds">30</span>
+                                <span class="block text-[10px] text-gray-400 uppercase">Detik</span>
+                            </div>
+                        </div>
+
+                        <a href="#katalog" class="inline-block px-6 py-3 rounded-xl bg-brand-red hover:bg-red-600 text-white font-bold text-sm glow-red transition-all">
+                            Klaim Diskon Sekarang
+                        </a>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=800&q=80" 
+                                 alt="Promo Product" class="rounded-2xl max-h-72 object-cover border border-slate-700/60 shadow-xl">
+                            <div class="absolute -bottom-4 -left-4 bg-brand-blue text-black font-extrabold p-4 rounded-2xl shadow-lg text-center transform -rotate-3">
+                                <span class="block text-xs uppercase">Diskon Hingga</span>
+                                <span class="font-heading text-2xl">50% OFF</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer id="kontak" class="bg-slate-950 border-t border-slate-800/80 mt-auto pt-12 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <!-- Brand Info -->
+                <div class="space-y-4">
+                    <a href="#" class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-red to-brand-blue flex items-center justify-center">
+                            <i class="fa-solid text-black text-sm fa-bolt"></i>
+                        </div>
+                        <span class="font-heading text-xl font-black text-white">NEXUS.</span>
+                    </a>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Penyedia katalog perangkat teknologi futuristik dan perlengkapan gaming dengan estetika terbaik.
+                    </p>
+                    <div class="flex space-x-3 text-gray-400 pt-2">
+                        <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center hover:text-brand-red hover:bg-slate-800 transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center hover:text-brand-blue hover:bg-slate-800 transition-colors"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center hover:text-brand-red hover:bg-slate-800 transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <div>
+                    <h4 class="font-heading text-sm font-bold text-white mb-4 uppercase tracking-wider">Navigasi</h4>
+                    <ul class="space-y-2 text-xs text-gray-400">
+                        <li><a href="#hero" class="hover:text-brand-red transition-colors">Beranda</a></li>
+                        <li><a href="#katalog" class="hover:text-brand-red transition-colors">Katalog Produk</a></li>
+                        <li><a href="#promo" class="hover:text-brand-red transition-colors">Promo & Diskon</a></li>
+                        <li><a href="#" class="hover:text-brand-red transition-colors">Syarat & Ketentuan</a></li>
+                    </ul>
+                </div>
+
+                <!-- Product Categories -->
+                <div>
+                    <h4 class="font-heading text-sm font-bold text-white mb-4 uppercase tracking-wider">Kategori</h4>
+                    <ul class="space-y-2 text-xs text-gray-400">
+                        <li><a href="#katalog" class="hover:text-brand-blue transition-colors">Gaming Peripherals</a></li>
+                        <li><a href="#katalog" class="hover:text-brand-blue transition-colors">Audio Premium</a></li>
+                        <li><a href="#katalog" class="hover:text-brand-blue transition-colors">Smart Wearables</a></li>
+                        <li><a href="#katalog" class="hover:text-brand-blue transition-colors">Aksesoris Neon</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact & Support -->
+                <div>
+                    <h4 class="font-heading text-sm font-bold text-white mb-4 uppercase tracking-wider">Kontak</h4>
+                    <ul class="space-y-3 text-xs text-gray-400">
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot text-brand-red"></i>
+                            <span>Jakarta Tech Tower Level 12, Indonesia</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-envelope text-brand-blue"></i>
+                            <span>support@nexus-katalog.id</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-phone text-brand-red"></i>
+                            <span>+62 (21) 8000-9999</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-900 pt-6 text-center text-xs text-gray-500">
+                <p>&copy; 2026 NEXUS Products Catalog. Hak Cipta Dilindungi Undang-Undang.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Shopping Cart Modal Drawer -->
+    <div id="cartModal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex justify-end transition-opacity">
+        <div class="w-full max-w-md bg-slate-950 h-full p-6 flex flex-col justify-between border-l border-slate-800 shadow-2xl">
+            <div>
+                <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <h3 class="font-heading text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-bag-shopping text-brand-red"></i> Keranjang Belanja
+                    </h3>
+                    <button id="closeCartBtn" class="text-gray-400 hover:text-white p-2">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Cart Items Container -->
+                <div id="cartItems" class="py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+                    <!-- Items populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Cart Summary & Checkout -->
+            <div class="pt-4 border-t border-slate-800">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm text-gray-400">Total Pembayaran:</span>
+                    <span id="cartTotal" class="font-heading text-xl font-bold text-brand-blue">Rp 0</span>
+                </div>
+                <button onclick="checkout()" class="w-full py-3 bg-gradient-to-r from-brand-red to-red-700 hover:from-red-600 hover:to-brand-red text-white font-bold rounded-xl glow-red transition-all">
+                    Lanjut Ke Pembayaran
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick View Product Modal -->
+    <div id="quickViewModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card max-w-2xl w-full rounded-2xl p-6 relative border border-slate-700">
+            <button id="closeQuickView" class="absolute top-4 right-4 text-gray-400 hover:text-white p-2">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="quickViewContent">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 hidden bg-slate-900 border border-brand-red/50 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-brand-blue text-lg" id="toastIcon"></i>
+        <span id="toastMessage" class="text-sm font-medium">Produk ditambahkan ke keranjang!</span>
+    </div>
+
+    <script>
+        // Data Produk Katalog
+        const products = [
+            {
+                id: 1,
+                title: "CyberHeadset Pro RGB",
+                category: "audio",
+                price: 1299000,
+                oldPrice: 1599000,
+                rating: 4.9,
+                badge: "Terlaris",
+                badgeColor: "bg-brand-red",
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
+                description: "Headset gaming nirkabel dengan audio spasial 7.1 dan peredam bising aktif."
+            },
+            {
+                id: 2,
+                title: "Mechanical Keyboard Neon 87",
+                category: "gaming",
+                price: 899000,
+                oldPrice: 1100000,
+                rating: 4.8,
+                badge: "Diskon 20%",
+                badgeColor: "bg-brand-blue text-black",
+                image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=600&q=80",
+                description: "Keyboard mekanis ringkas dengan switch taktil presisi dan RGB customizble."
+            },
+            {
+                id: 3,
+                title: "Smartwatch Apex Cyber",
+                category: "wearable",
+                price: 2199000,
+                oldPrice: 2500000,
+                rating: 4.7,
+                badge: "Baru",
+                badgeColor: "bg-purple-600",
+                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80",
+                description: "Jam tangan pintar futuristik dengan sensor kesehatan lengkap dan layar AMOLED."
+            },
+            {
+                id: 4,
+                title: "Precision Ergonomic Mouse",
+                category: "gaming",
+                price: 649000,
+                oldPrice: 799000,
+                rating: 4.6,
+                badge: "Promo",
+                badgeColor: "bg-brand-red",
+                image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=600&q=80",
+                description: "Mouse gaming ultra ringan 26.000 DPI untuk akurasi tinggi dan kenyamanan maksimal."
+            },
+            {
+                id: 5,
+                title: "TWS Earbuds RedFlare",
+                category: "audio",
+                price: 749000,
+                oldPrice: 999000,
+                rating: 4.8,
+                badge: "Hot",
+                badgeColor: "bg-brand-red",
+                image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80",
+                description: "Earbuds TWS bass bertenaga dengan latensi ultra rendah untuk gaming dan musik."
+            },
+            {
+                id: 6,
+                title: "Cyberpunk RGB Mousepad XL",
+                category: "aksesoris",
+                price: 299000,
+                oldPrice: 399000,
+                rating: 4.9,
+                badge: "Favorit",
+                badgeColor: "bg-brand-blue text-black",
+                image: "https://images.unsplash.com/photo-1616440342232-25932e652d5b?auto=format&fit=crop&w=600&q=80",
+                description: "Alas mouse ukuran besar dengan efek pencahayaan neon 14 mode RGB di tepinya."
+            },
+            {
+                id: 7,
+                title: "VR Headset Horizon X",
+                category: "wearable",
+                price: 4999000,
+                oldPrice: 5500000,
+                rating: 5.0,
+                badge: "Premium",
+                badgeColor: "bg-amber-500 text-black",
+                image: "https://images.unsplash.com/photo-1622979135225-d2ba269bc1bd?auto=format&fit=crop&w=600&q=80",
+                description: "Kacamata realitas virtual resolusi 4K per mata untuk pengalaman immersive penuh."
+            },
+            {
+                id: 8,
+                title: "Streamer Microphone Stand",
+                category: "aksesoris",
+                price: 850000,
+                oldPrice: 990000,
+                rating: 4.7,
+                badge: "Terlaris",
+                badgeColor: "bg-brand-red",
+                image: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=600&q=80",
+                description: "Mikrofon kondenser jernih dengan noise filtering bawaan untuk podcast & streaming."
+            }
+        ];
+
+        // State Aplikasi
+        let cart = [];
+        let wishlistCount = 0;
+        let activeCategory = 'all';
+
+        // Render Produk ke DOM
+        function renderProducts(items) {
+            const grid = document.getElementById('productGrid');
+            const noResults = document.getElementById('noResults');
+
+            grid.innerHTML = '';
+
+            if (items.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            items.forEach(product => {
+                const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(product.price);
+                const formattedOldPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(product.oldPrice);
+
+                const cardHtml = `
+                    <div class="glass-card rounded-2xl overflow-hidden flex flex-col justify-between group">
+                        <div class="relative overflow-hidden">
+                            <!-- Badge -->
+                            <span class="absolute top-3 left-3 ${product.badgeColor} font-bold text-[11px] px-2.5 py-1 rounded-md z-10 shadow-md">
+                                ${product.badge}
+                            </span>
+                            
+                            <!-- Wishlist Button -->
+                            <button onclick="toggleWishlist(this)" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-900/80 text-gray-400 hover:text-brand-red flex items-center justify-center z-10 transition-colors">
+                                <i class="fa-regular fa-heart"></i>
+                            </button>
+
+                            <!-- Image -->
+                            <img src="${product.image}" alt="${product.title}" 
+                                class="w-full h-52 object-cover transform group-hover:scale-110 transition-transform duration-500">
+                            
+                            <!-- Quick View Overlay -->
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button onclick="openQuickView(${product.id})" class="px-4 py-2 bg-slate-900/90 text-white border border-slate-700 text-xs font-bold rounded-xl hover:border-brand-blue hover:text-brand-blue transition-colors">
+                                    <i class="fa-solid fa-eye mr-1"></i> Lihat Detail
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="p-5 flex flex-col flex-grow justify-between">
+                            <div>
+                                <div class="flex items-center justify-between text-xs text-gray-400 mb-1">
+                                    <span class="uppercase tracking-wider text-brand-blue font-semibold">${product.category}</span>
+                                    <span class="flex items-center text-amber-400 font-bold">
+                                        <i class="fa-solid fa-star text-xs mr-1"></i> ${product.rating}
+                                    </span>
+                                </div>
+                                <h3 class="font-heading text-base font-bold text-white group-hover:text-brand-red transition-colors line-clamp-1 mb-2">
+                                    ${product.title}
+                                </h3>
+                                <p class="text-xs text-gray-400 line-clamp-2 mb-4">${product.description}</p>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                                <div>
+                                    <span class="text-[10px] text-gray-500 line-through">${formattedOldPrice}</span>
+                                    <p class="font-heading text-lg font-bold text-white">${formattedPrice}</p>
+                                </div>
+                                <button onclick="addToCart('${product.title}', ${product.price}, '${product.image}')" 
+                                    class="px-3.5 py-2.5 bg-brand-red hover:bg-red-600 text-white rounded-xl font-bold text-xs glow-red transition-all flex items-center gap-1.5">
+                                    <i class="fa-solid fa-cart-plus"></i> Beli
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // Filter Berdasarkan Kategori
+        document.getElementById('categoryFilter').addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('bg-brand-red', 'text-white', 'shadow-md');
+                    btn.classList.add('bg-slate-900', 'text-gray-400', 'border', 'border-slate-800');
+                });
+
+                e.target.classList.remove('bg-slate-900', 'text-gray-400', 'border', 'border-slate-800');
+                e.target.classList.add('bg-brand-red', 'text-white', 'shadow-md');
+
+                activeCategory = e.target.dataset.category;
+                filterAndSearchProducts();
+            }
+        });
+
+        // Search Filter
+        const searchInput = document.getElementById('searchInput');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+
+        function filterAndSearchProducts() {
+            const query = (searchInput.value || mobileSearchInput.value).toLowerCase();
+
+            const filtered = products.filter(product => {
+                const matchesCategory = activeCategory === 'all' || product.category === activeCategory;
+                const matchesSearch = product.title.toLowerCase().includes(query) || product.description.toLowerCase().includes(query);
+                return matchesCategory && matchesSearch;
+            });
+
+            renderProducts(filtered);
+        }
+
+        searchInput.addEventListener('input', filterAndSearchProducts);
+        mobileSearchInput.addEventListener('input', filterAndSearchProducts);
+
+        // Cart Drawer Logic
+        function addToCart(title, price, image) {
+            const existing = cart.find(item => item.title === title);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ title, price, image, quantity: 1 });
+            }
+            updateCartUI();
+            showToast(`"${title}" ditambahkan ke keranjang!`);
+        }
+
+        function updateCartUI() {
+            const cartCount = document.getElementById('cart-count');
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+
+            const totalCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+            cartCount.textContent = totalCount;
+
+            cartItems.innerHTML = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="text-center text-gray-500 text-sm py-8">Keranjang Anda masih kosong.</p>';
+            } else {
+                cart.forEach((item, index) => {
+                    total += item.price * item.quantity;
+                    const itemPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price);
+                    
+                    cartItems.innerHTML += `
+                        <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <img src="${item.image}" class="w-12 h-12 object-cover rounded-lg" alt="">
+                                <div>
+                                    <h4 class="text-xs font-bold text-white line-clamp-1">${item.title}</h4>
+                                    <span class="text-xs text-brand-blue font-semibold">${itemPrice}</span>
+                                    <div class="text-[10px] text-gray-400 mt-1">Qty: ${item.quantity}</div>
+                                </div>
+                            </div>
+                            <button onclick="removeFromCart(${index})" class="text-gray-500 hover:text-brand-red p-2">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            cartTotal.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(total);
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        // Quick View Modal Logic
+        function openQuickView(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            const modal = document.getElementById('quickViewModal');
+            const content = document.getElementById('quickViewContent');
+            const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(product.price);
+
+            content.innerHTML = `
+                <div>
+                    <img src="${product.image}" class="w-full h-64 object-cover rounded-xl border border-slate-700" alt="${product.title}">
+                </div>
+                <div class="flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-brand-blue uppercase">${product.category}</span>
+                        <h3 class="font-heading text-xl font-bold text-white mt-1">${product.title}</h3>
+                        <p class="text-sm text-gray-400 mt-3 leading-relaxed">${product.description}</p>
+                        <div class="mt-4">
+                            <span class="font-heading text-2xl font-black text-brand-red">${formattedPrice}</span>
+                        </div>
+                    </div>
+                    <button onclick="addToCart('${product.title}', ${product.price}, '${product.image}'); document.getElementById('quickViewModal').classList.add('hidden')" 
+                        class="w-full py-3 mt-6 bg-brand-red hover:bg-red-600 text-white font-bold rounded-xl glow-red transition-all">
+                        + Tambah ke Keranjang
+                    </button>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        document.getElementById('closeQuickView').addEventListener('click', () => {
+            document.getElementById('quickViewModal').classList.add('hidden');
+        });
+
+        // Wishlist Toggle
+        function toggleWishlist(btn) {
+            const icon = btn.querySelector('i');
+            const wishlistBadge = document.getElementById('wishlist-count');
+            
+            if (icon.classList.contains('fa-regular')) {
+                icon.classList.remove('fa-regular');
+                icon.classList.add('fa-solid', 'text-brand-red');
+                wishlistCount++;
+                showToast("Produk ditambahkan ke Wishlist!");
+            } else {
+                icon.classList.remove('fa-solid', 'text-brand-red');
+                icon.classList.add('fa-regular');
+                wishlistCount = Math.max(0, wishlistCount - 1);
+            }
+            wishlistBadge.textContent = wishlistCount;
+        }
+
+        // Toast Notification Helper
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Checkout Button Action
+        function checkout() {
+            if (cart.length === 0) {
+                showToast("Keranjang Anda kosong!");
+                return;
+            }
+            alert("Terima kasih! Pesanan Anda telah diproses.");
+            cart = [];
+            updateCartUI();
+            document.getElementById('cartModal').classList.add('hidden');
+        }
+
+        // Cart Drawer Handlers
+        document.getElementById('openCartBtn').addEventListener('click', () => {
+            document.getElementById('cartModal').classList.remove('hidden');
+        });
+        document.getElementById('closeCartBtn').addEventListener('click', () => {
+            document.getElementById('cartModal').classList.add('hidden');
+        });
+
+        // Mobile Menu Handler
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+
+        // Countdown Timer Dynamic Simulation
+        setInterval(() => {
+            const secElem = document.getElementById('seconds');
+            let sec = parseInt(secElem.textContent);
+            if (sec > 0) {
+                secElem.textContent = String(sec - 1).padStart(2, '0');
+            } else {
+                secElem.textContent = '59';
+            }
+        }, 1000);
+
+        // Initial Render on Window Load
+        window.onload = function() {
+            renderProducts(products);
+        };
+    </script>
+</body>
+</html>
