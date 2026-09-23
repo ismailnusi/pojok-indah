@@ -1,0 +1,5 @@
+# Hardening khusus panel admin (pengganti <LocationMatch> yang memicu 500).
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "DENY"
+</IfModule>
+Options -Indexes
