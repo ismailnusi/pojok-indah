@@ -378,6 +378,7 @@ function lbOpen(imgs, idx, cap) {
     lbShow();
     document.getElementById('lightbox').classList.add('open');
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('lb-lock');
 }
 function lbShow() {
     var m = document.getElementById('lightboxImg');
@@ -393,6 +394,7 @@ function lbNav(d) {
 function lbClose() {
     document.getElementById('lightbox').classList.remove('open');
     document.body.style.overflow = '';
+    document.body.classList.remove('lb-lock');
 }
 document.addEventListener('keydown', function (e) {
     var lb = document.getElementById('lightbox');
