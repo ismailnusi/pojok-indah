@@ -119,9 +119,9 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
     <section class="hero">
         <div class="container hero-grid">
             <div>
-                <div class="hero-badge"><span class="dot"></span> Percetakan Online Terpercaya</div>
-                <h1>Cetak Kebutuhan<br><span class="text-gradient-red">Usaha &amp; Bisnismu</span></h1>
-                <p>Banner, spanduk, kartu nama, brosur, stiker, kaos, mug, dan masih banyak lagi. Kualitas terbaik, harga terjangkau, pengerjaan cepat.</p>
+                <div class="hero-badge"><span class="dot"></span> Percetakan Online / Offline</div>
+                <h1>Cetak Kebutuhanmu<br><span class="text-gradient-red">Murah &amp; Berkualitas</span></h1>
+                <p>Undaangan Pernikahan, Khitanan, Pembeatan, Ulang tahun, Id Card, Baliho, Banner, Calender dan masih banyak lagi.</p>
                 <div class="hero-actions">
                     <a href="#katalog" class="btn btn-primary">Lihat Katalog ➜</a>
                     <a href="orders.php" class="btn btn-cyan">Lacak Pesanan</a>
