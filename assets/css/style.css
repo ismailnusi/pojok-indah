@@ -1840,7 +1840,7 @@ textarea.form-control {
 
 @media (max-width: 480px) {
     .grid-4 {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
     .hero-stats {
         grid-template-columns: repeat(3, 1fr);
@@ -2360,5 +2360,72 @@ body.terang .count-box b {
         width: 46px;
         height: 46px;
         font-size: 1.2rem;
+    }
+}
+
+/* ============================================================
+   KATALOG MOBILE 2 KOLOM ALA SHOPEE (layar <= 480px)
+   Kartu compact: judul clamp 2 baris, deskripsi & meta
+   disembunyikan, harga + tombol diperkecil.
+   ============================================================ */
+@media (max-width: 480px) {
+    .grid {
+        gap: 14px;
+    }
+    .grid-4 {
+        gap: 10px;
+    }
+    .card-body {
+        padding: 10px;
+    }
+    .card-cat {
+        font-size: 0.6rem;
+        letter-spacing: 1px;
+        margin-bottom: 3px;
+    }
+    .card-title a {
+        font-size: 0.8rem;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .card-desc,
+    .card-meta {
+        display: none;
+    }
+    .card-foot {
+        margin-top: 8px;
+        padding-top: 8px;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .card-price {
+        font-size: 0.85rem;
+    }
+    .card-price small {
+        font-size: 0.62rem;
+    }
+    .btn-buy {
+        padding: 7px 10px;
+        font-size: 0.7rem;
+        border-radius: 8px;
+    }
+    .badge-featured {
+        font-size: 0.62rem;
+        padding: 3px 8px;
+    }
+    .badge-stok {
+        font-size: 0.6rem;
+        padding: 3px 8px;
+    }
+    .card-zoom {
+        width: 36px;
+        height: 36px;
+        font-size: 0.95rem;
+        right: 8px;
+        bottom: 8px;
     }
 }
