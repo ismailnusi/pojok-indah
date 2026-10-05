@@ -12,7 +12,7 @@ function get_gambar_produk($produk_id, $kategori_id) {
         9 => 'totebag.svg',
         10 => 'neonbox.svg'
     );
-    return isset($map[$kategori_id]) ? $map[$kategori_id] : 'default.svg';
+    return isset($map[$kategori_id]) ? $map[$kategori_id] : 'default.png';
 }
 
 // Daftar semua gambar produk untuk galeri (maks 3).
@@ -76,5 +76,5 @@ function get_gambar_src($produk) {
             return 'assets/img/' . $file;
         }
     }
-    return 'assets/img/default.svg';
+    return 'assets/img/default.png';
 }

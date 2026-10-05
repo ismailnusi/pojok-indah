@@ -651,20 +651,26 @@ body.lb-lock {
 .card-image {
     position: relative;
     display: block;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1 / 1;
     overflow: hidden;
     background: #0e1118;
 }
 
-.card-image img {
+.card-image .card-photo {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+    cursor: zoom-in;
     transition: transform 0.5s;
 }
 
-.card:hover .card-image img {
+.card:hover .card-image .card-photo {
     transform: scale(1.08);
+}
+
+.zoomable {
+    cursor: zoom-in;
 }
 
 .card-quick {
@@ -676,6 +682,7 @@ body.lb-lock {
     align-items: center;
     justify-content: center;
     transition: opacity 0.3s;
+    pointer-events: none;
 }
 
 .card:hover .card-quick {
@@ -2133,12 +2140,6 @@ body.terang .count-box b {
 }
 
 /* ============ GALERI & LIGHTBOX ============ */
-.card-image .card-link {
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-
 .card-zoom,
 .gal-expand {
     position: absolute;

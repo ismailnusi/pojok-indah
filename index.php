@@ -136,7 +136,7 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
             <div class="hero-highlight">
                 <div class="highlight-card">
                     <span class="highlight-tag">Highlight</span>
-                    <img src="<?= get_gambar_src($highlight) ?>" alt="<?= htmlspecialchars($highlight['nama_produk']) ?>" onerror="this.src='assets/img/default.svg'">
+                    <img class="zoomable" src="<?= get_gambar_src($highlight) ?>" alt="<?= htmlspecialchars($highlight['nama_produk']) ?>" data-imgs="<?= htmlspecialchars(json_encode(array(get_gambar_src($highlight))), ENT_QUOTES, 'UTF-8') ?>" data-title="<?= htmlspecialchars($highlight['nama_produk']) ?>" title="Klik untuk memperbesar" style="cursor:zoom-in" onerror="this.onerror=null;this.src='assets/img/default.png'">
                     <div class="highlight-cat"><?= htmlspecialchars($highlight['nama_kategori']) ?></div>
                     <h3><?= htmlspecialchars($highlight['nama_produk']) ?></h3>
                     <div class="highlight-foot">
@@ -174,18 +174,17 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
                     <?php foreach ($rows as $p): ?>
                         <div class="card">
                             <div class="card-image">
-                                <a href="product.php?id=<?= $p['id'] ?>" class="card-link">
-                                    <img src="<?= get_gambar_src($p) ?>" alt="<?= htmlspecialchars($p['nama_produk']) ?>" onerror="this.src='assets/img/default.svg'">
-                                    <span class="card-quick"><span>👁 Lihat Detail</span></span>
-                                </a>
+                                <?php $glist = (isset($gal_map[$p['id']]) && $gal_map[$p['id']]) ? $gal_map[$p['id']] : array(get_gambar_src($p)); ?>
+                                <?php $gjson = htmlspecialchars(json_encode($glist), ENT_QUOTES, 'UTF-8'); ?>
+                                <img class="card-photo zoomable" src="<?= get_gambar_src($p) ?>" alt="<?= htmlspecialchars($p['nama_produk']) ?>" data-imgs="<?= $gjson ?>" data-title="<?= htmlspecialchars($p['nama_produk']) ?>" title="Klik untuk memperbesar" onerror="this.onerror=null;this.src='assets/img/default.png'">
                                 <?php if ($p['is_unggulan']): ?>
                                     <span class="badge badge-featured">⭐ Unggulan</span>
                                 <?php endif; ?>
                                 <?php if ($p['stok'] > 0 && $p['stok'] < 20): ?>
                                     <span class="badge badge-stok">Sisa <?= $p['stok'] ?></span>
                                 <?php endif; ?>
-                                <?php $glist = (isset($gal_map[$p['id']]) && $gal_map[$p['id']]) ? $gal_map[$p['id']] : array(get_gambar_src($p)); ?>
-                                <button type="button" class="card-zoom" data-imgs="<?= htmlspecialchars(json_encode($glist), ENT_QUOTES, 'UTF-8') ?>" data-title="<?= htmlspecialchars($p['nama_produk']) ?>" title="Perbesar gambar">🔍</button>
+                                <button type="button" class="card-zoom" data-imgs="<?= $gjson ?>" data-title="<?= htmlspecialchars($p['nama_produk']) ?>" title="Perbesar gambar">🔍</button>
+                                <span class="card-quick"><span>🔍 Klik untuk memperbesar</span></span>
                             </div>
                             <div class="card-body">
                                 <div class="card-cat"><?= htmlspecialchars($p['nama_kategori']) ?></div>
@@ -244,7 +243,7 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
                     <a href="#katalog" class="btn btn-primary">Klaim Sekarang</a>
                 </div>
                 <div class="promo-visual">
-                    <img src="assets/img/banner.svg" alt="Promo cetak" onerror="this.src='assets/img/default.svg'">
+                    <img src="assets/img/banner.svg" alt="Promo cetak" onerror="this.onerror=null;this.src='assets/img/default.png'">
                     <div class="promo-off"><small>Desain</small>GRATIS</div>
                 </div>
             </div>
@@ -382,7 +381,7 @@ function lbOpen(imgs, idx, cap) {
 }
 function lbShow() {
     var m = document.getElementById('lightboxImg');
-    m.onerror = function () { this.onerror = null; this.src = 'assets/img/default.svg'; };
+    m.onerror = function () { this.onerror = null; this.src = 'assets/img/default.png'; };
     m.src = LB_IMGS[LB_I];
     document.getElementById('lightboxCount').textContent = (LB_I + 1) + ' / ' + LB_IMGS.length;
 }
@@ -404,7 +403,7 @@ document.addEventListener('keydown', function (e) {
     else if (e.key === 'ArrowRight') lbNav(1);
 });
 document.addEventListener('click', function (e) {
-    var z = e.target && e.target.closest ? e.target.closest('.card-zoom') : null;
+    var z = e.target && e.target.closest ? e.target.closest('.card-zoom, .zoomable') : null;
     if (z) {
         try {
             lbOpen(JSON.parse(z.getAttribute('data-imgs')), 0, z.getAttribute('data-title'));

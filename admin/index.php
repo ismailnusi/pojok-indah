@@ -193,7 +193,7 @@ exit;
                         <?php else: while ($pr = $list->fetch_assoc()): ?>
                             <tr>
                                 <td>#<?= $pr['id'] ?></td>
-                                <td><img src="../<?= htmlspecialchars(get_gambar_src($pr)) ?>" alt="" class="thumb-admin" loading="lazy" onerror="this.src='../assets/img/default.svg'"></td>
+                                <td><img src="../<?= htmlspecialchars(get_gambar_src($pr)) ?>" alt="" class="thumb-admin" loading="lazy" onerror="this.onerror=null;this.src='../assets/img/default.png'"></td>
                                 <td><strong><?= htmlspecialchars($pr['nama_produk']) ?></strong></td>
                                 <td><?= htmlspecialchars($pr['nama_kategori']) ?></td>
                                 <td><?= rupiah($pr['harga']) ?></td>
@@ -245,7 +245,7 @@ exit;
                     // Upload 1-3 gambar sekaligus; gambar pertama jadi sampul
                     $err_up = null;
                     $files_up = upload_gambar_multi('gambar_multi', GALERI_MAKS, $err_up);
-                    $gambar_ins = $files_up ? $files_up[0] : 'default.svg';
+                    $gambar_ins = $files_up ? $files_up[0] : 'default.png';
                     $stmt = $conn->prepare("INSERT INTO produk (id_kategori, nama_produk, deskripsi, harga, satuan, stok, minimal_order, waktu_pengerjaan, gambar, is_unggulan, is_aktif) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
                     $stmt->bind_param('issdsiissii', $kat, $nama, $desc, $harga, $satuan, $stok, $min, $waktu, $gambar_ins, $unggulan, $aktif);
                     if ($stmt->execute()) {
@@ -369,7 +369,7 @@ exit;
                             <div class="galeri-admin">
                                 <?php foreach ($galeri as $gi => $g): ?>
                                     <div class="galeri-item<?= $gi === 0 ? ' is-sampul' : '' ?>">
-                                        <img src="../<?= htmlspecialchars($g['url']) ?>" alt="" loading="lazy" onerror="this.src='../assets/img/default.svg'">
+                                        <img src="../<?= htmlspecialchars($g['url']) ?>" alt="" loading="lazy" onerror="this.onerror=null;this.src='../assets/img/default.png'">
                                         <?php if ($gi === 0): ?><span class="galeri-tag">Sampul</span><?php endif; ?>
                                         <div class="galeri-acts">
                                             <label title="Jadikan sampul katalog"><input type="radio" name="sampul_id" value="<?= (int)$g['id'] ?>" <?= $gi === 0 ? 'checked' : '' ?>> Sampul</label>

@@ -67,7 +67,7 @@ $glist = get_gambar_list($p);
         <div class="product-detail">
             <div>
                 <div class="product-detail-img gal-main" onclick="lbOpen(GAL_IMGS, GAL_I, GAL_CAP)" title="Klik gambar untuk memperbesar">
-                    <img id="galMain" src="<?= htmlspecialchars($glist[0]) ?>" alt="<?= htmlspecialchars($p['nama_produk']) ?>" onerror="this.src='assets/img/default.svg'">
+                    <img id="galMain" src="<?= htmlspecialchars($glist[0]) ?>" alt="<?= htmlspecialchars($p['nama_produk']) ?>" onerror="this.onerror=null;this.src='assets/img/default.png'">
                     <?php if ($p['is_unggulan']): ?>
                         <span class="badge badge-featured">⭐ Unggulan</span>
                     <?php endif; ?>
@@ -77,7 +77,7 @@ $glist = get_gambar_list($p);
                     <div class="gal-thumbs">
                         <?php foreach ($glist as $gi => $gu): ?>
                             <button type="button" class="gal-thumb<?= $gi === 0 ? ' active' : '' ?>" onclick="galSwap(<?= $gi ?>)" title="Lihat gambar <?= $gi + 1 ?>">
-                                <img src="<?= htmlspecialchars($gu) ?>" alt="" loading="lazy" onerror="this.src='assets/img/default.svg'">
+                                <img src="<?= htmlspecialchars($gu) ?>" alt="" loading="lazy" onerror="this.onerror=null;this.src='assets/img/default.png'">
                             </button>
                         <?php endforeach; ?>
                     </div>
@@ -111,10 +111,13 @@ $glist = get_gambar_list($p);
             <div class="grid grid-4">
                 <?php while ($rp = $produk_lain->fetch_assoc()): ?>
                     <div class="card">
-                        <a href="product.php?id=<?= $rp['id'] ?>" class="card-image">
-                            <img src="<?= get_gambar_src($rp) ?>" alt="<?= htmlspecialchars($rp['nama_produk']) ?>" onerror="this.src='assets/img/default.svg'">
-                            <span class="card-quick"><span>👁 Lihat Detail</span></span>
-                        </a>
+                        <div class="card-image">
+                            <?php $rg = array(get_gambar_src($rp)); ?>
+                            <?php $rgjson = htmlspecialchars(json_encode($rg), ENT_QUOTES, 'UTF-8'); ?>
+                            <img class="card-photo zoomable" src="<?= get_gambar_src($rp) ?>" alt="<?= htmlspecialchars($rp['nama_produk']) ?>" data-imgs="<?= $rgjson ?>" data-title="<?= htmlspecialchars($rp['nama_produk']) ?>" title="Klik untuk memperbesar" onerror="this.onerror=null;this.src='assets/img/default.png'">
+                            <button type="button" class="card-zoom" data-imgs="<?= $rgjson ?>" data-title="<?= htmlspecialchars($rp['nama_produk']) ?>" title="Perbesar gambar">🔍</button>
+                            <span class="card-quick"><span>🔍 Klik untuk memperbesar</span></span>
+                        </div>
                         <div class="card-body">
                             <h3 class="card-title"><a href="product.php?id=<?= $rp['id'] ?>"><?= htmlspecialchars($rp['nama_produk']) ?></a></h3>
                             <div class="card-foot">
@@ -202,7 +205,7 @@ function lbOpen(imgs, idx, cap) {
 }
 function lbShow() {
     var m = document.getElementById('lightboxImg');
-    m.onerror = function () { this.onerror = null; this.src = 'assets/img/default.svg'; };
+    m.onerror = function () { this.onerror = null; this.src = 'assets/img/default.png'; };
     m.src = LB_IMGS[LB_I];
     document.getElementById('lightboxCount').textContent = (LB_I + 1) + ' / ' + LB_IMGS.length;
 }
@@ -225,6 +228,14 @@ document.addEventListener('keydown', function (e) {
 });
 document.getElementById('lightbox').addEventListener('click', function (e) {
     if (e.target === this) lbClose();
+});
+document.addEventListener('click', function (e) {
+    var z = e.target && e.target.closest ? e.target.closest('.card-zoom, .zoomable') : null;
+    if (z) {
+        try {
+            lbOpen(JSON.parse(z.getAttribute('data-imgs')), 0, z.getAttribute('data-title'));
+        } catch (err) {}
+    }
 });
 </script>
 

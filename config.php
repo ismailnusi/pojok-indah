@@ -237,7 +237,7 @@ function sync_cover($id_produk) {
     global $conn;
     $id = (int)$id_produk;
     $row = q_row("SELECT nama_file FROM produk_gambar WHERE id_produk = $id ORDER BY urutan ASC, id ASC LIMIT 1");
-    $cover = ($row && !empty($row['nama_file'])) ? basename($row['nama_file']) : 'default.svg';
+    $cover = ($row && !empty($row['nama_file'])) ? basename($row['nama_file']) : 'default.png';
     $c = $conn->real_escape_string($cover);
     $conn->query("UPDATE produk SET gambar = '$c' WHERE id = $id");
 }

@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS produk (
     stok INT DEFAULT 0,
     minimal_order INT DEFAULT 1,
     waktu_pengerjaan VARCHAR(100) DEFAULT '1-2 hari',
-    gambar VARCHAR(500) DEFAULT 'default.svg',
+    gambar VARCHAR(500) DEFAULT 'default.png',
     is_unggulan TINYINT(1) DEFAULT 0,
     is_aktif TINYINT(1) DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
