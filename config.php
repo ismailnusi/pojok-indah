@@ -69,9 +69,51 @@ function status_badge($status) {
     return isset($map[$status]) ? $map[$status] : $map['pending'];
 }
 
-// Helper URL
+// Helper URL internal (path subfolder app, '' bila di root domain).
+// Contoh: '/WEBTES' di localhost, '' di store.rekapojokindah.id
 function base_url() {
-    return '/WEBTES';
+    $s = app_subfolder();
+    return $s === '' ? '' : $s;
+}
+
+// Subfolder web tempat app berada, dideteksi dari DOCUMENT_ROOT.
+// Akurat baik di localhost (/WEBTES) maupun produksi (root domain).
+function app_subfolder() {
+    $approot = str_replace('\\', '/', __DIR__);
+    if (isset($_SERVER['DOCUMENT_ROOT']) && $_SERVER['DOCUMENT_ROOT'] !== '') {
+        $docroot = str_replace('\\', '/', rtrim((string)$_SERVER['DOCUMENT_ROOT'], '/'));
+        $a = $approot;
+        $d = $docroot;
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $a = strtolower($a);
+            $d = strtolower($d);
+        }
+        if ($a === $d) {
+            return '';
+        }
+        if (strpos($a, $d . '/') === 0) {
+            return substr($approot, strlen($docroot));
+        }
+    }
+    // Fallback: dari path script (buang ekor /admin)
+    $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+    $dir = preg_replace('#/admin$#', '', rtrim($dir, '/'));
+    if ($dir === '' || $dir === '.' || $dir === '/') {
+        return '';
+    }
+    return $dir;
+}
+
+// URL dasar absolut situs. Bisa dikunci via pengaturan 'app_url'
+// (mis. https://store.rekapojokindah.id); bila kosong → otomatis.
+function app_url() {
+    $custom = trim((string)get_setting('app_url', ''));
+    if ($custom !== '') {
+        return rtrim($custom, '/');
+    }
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== '') ? $_SERVER['HTTP_HOST'] : 'localhost';
+    return $scheme . '://' . $host . app_subfolder();
 }
 
 // ============ PENGATURAN TEMA (gelap / terang) ============
@@ -81,6 +123,7 @@ $conn->query("CREATE TABLE IF NOT EXISTS pengaturan (
     nilai TEXT
 ) ENGINE=InnoDB");
 $conn->query("INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('tema', 'gelap')");
+$conn->query("INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('app_url', '')");
 
 function get_setting($kunci, $default = '') {
     global $conn;
@@ -167,16 +210,11 @@ function wa_admin() {
     return $no;
 }
 
-// URL absolut halaman tracking publik
+// URL absolut halaman tracking publik.
+// Ikut app_url(): di produksi menjadi https://store.rekapojokindah.id/track.php?kode=...
+// tanpa /WEBTES/; di localhost dev tetap http://localhost/WEBTES/track.php?kode=...
 function track_url($kode) {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host = (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== '') ? $_SERVER['HTTP_HOST'] : 'localhost';
-    $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-    $dir = preg_replace('#/admin$#', '', rtrim($dir, '/'));
-    if ($dir === '' || $dir === '.') {
-        $dir = '/WEBTES';
-    }
-    return $scheme . '://' . $host . $dir . '/track.php?kode=' . urlencode((string)$kode);
+    return app_url() . '/track.php?kode=' . urlencode((string)$kode);
 }
 
 // ============ UPLOAD GAMBAR PRODUK ============

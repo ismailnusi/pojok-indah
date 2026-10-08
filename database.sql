@@ -160,3 +160,6 @@ INSERT IGNORE INTO admin (username, password, nama_lengkap) VALUES
 -- Tema default situs + WA admin
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('tema', 'gelap');
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('wa_admin', '6281234567890');
+-- Kunci URL dasar situs (kosong = otomatis). Untuk mengunci domain produksi,
+-- jalankan: UPDATE pengaturan SET nilai='https://store.rekapojokindah.id' WHERE kunci='app_url';
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('app_url', '');
