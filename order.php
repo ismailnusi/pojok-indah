@@ -244,8 +244,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container footer-grid">
         <div class="footer-brand">
             <div class="logo"><img src="assets/img/logo.svg" alt="Percetakan Pojok Indah" class="logo-img"><span class="logo-text">Percetakan <span>Pojok Indah</span></span></div>
-            <p style="margin-top:12px">📍 Jl. Percetakan No. 123, Jakarta</p>
-            <p>📞 0812-3456-7890</p>
+            <p style="margin-top:12px">Percetakan online lengkap untuk kebutuhan usaha &amp; bisnis kamu. Kualitas terbaik, harga terjangkau.</p>
+            <div class="social-row">
+                <a href="#" title="Instagram">📸</a>
+                <a href="#" title="WhatsApp">💬</a>
+                <a href="#" title="YouTube">▶️</a>
+            </div>
         </div>
         <div>
             <h4>Menu</h4>
@@ -264,9 +268,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div>
             <h4>Kontak</h4>
             <ul class="footer-contact" style="list-style:none">
-                <li>📍 Jl. Percetakan No. 123, Jakarta</li>
-                <li>📞 0812-3456-7890</li>
-                <li>✉️ halo@pojokindah.id</li>
+                <li>📍 Jl. Prof. Dr. H. Mansoer Pateda No.Desa, Pentadio Timur</li>
+                <li>📞 0822-9075-2637</li>
+                <li>✉️ ismailnusi02@gmail.com</li>
             </ul>
         </div>
     </div>

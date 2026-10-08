@@ -76,6 +76,48 @@ if (!$pesanan) {
     </div>
 </main>
 
+<footer class="site-footer" id="kontak">
+    <div class="container footer-grid">
+        <div class="footer-brand">
+            <a href="index.php" class="logo">
+                <img src="assets/img/logo.svg" alt="Percetakan Pojok Indah" class="logo-img">
+                <span class="logo-text">Percetakan <span>Pojok Indah</span></span>
+            </a>
+            <p style="margin-top:12px">Percetakan online lengkap untuk kebutuhan usaha &amp; bisnis kamu. Kualitas terbaik, harga terjangkau.</p>
+            <div class="social-row">
+                <a href="#" title="Instagram">📸</a>
+                <a href="#" title="WhatsApp">💬</a>
+                <a href="#" title="YouTube">▶️</a>
+            </div>
+        </div>
+        <div>
+            <h4>Menu</h4>
+            <a href="index.php">Beranda</a>
+            <a href="index.php#katalog">Katalog Produk</a>
+            <a href="track.php">Lacak Pesanan</a>
+            <a href="admin/">Login Admin</a>
+        </div>
+        <div>
+            <h4>Kategori Populer</h4>
+            <a href="index.php?kat=1">Banner &amp; Spanduk</a>
+            <a href="index.php?kat=2">Kartu Nama</a>
+            <a href="index.php?kat=6">Mug Custom</a>
+            <a href="index.php?kat=5">Kaos &amp; Sablon</a>
+        </div>
+        <div>
+            <h4>Kontak</h4>
+            <ul class="footer-contact" style="list-style:none">
+                <li>📍 Jl. Prof. Dr. H. Mansoer Pateda No.Desa, Pentadio Timur</li>
+                <li>📞 0822-9075-2637</li>
+                <li>✉️ ismailnusi02@gmail.com</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="container">&copy; <?= date('Y') ?> Percetakan Pojok Indah. All rights reserved.</div>
+    </div>
+</footer>
+
 <?php $CHAT_KODE = $pesanan['kode_pesanan']; include __DIR__ . '/partials/chat_widget.php'; ?>
 
 </body>
