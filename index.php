@@ -91,6 +91,8 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
     <link rel="stylesheet" href="assets/css/style.css?v=<?= filemtime('assets/css/style.css') ?>">
 </head>
 <body class="<?= $APP_TEMA === 'terang' ? 'terang' : '' ?>">
+<script src="assets/js/tema.js?v=<?= filemtime('assets/js/tema.js') ?>"></script>
+<script>ppiTemaAwal();document.addEventListener('DOMContentLoaded',ppiTemaCat);</script>
 
 <header class="site-header">
     <div class="container header-inner">
@@ -106,7 +108,8 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
             <a href="index.php" class="<?= basename($_SERVER['PHP_SELF']) == 'index.php' && !$kat_dipilih && $cari == '' ? 'active' : '' ?>">Beranda</a>
             <a href="index.php#katalog">Katalog</a>
             <a href="index.php#promo">Promo<span class="nav-badge-hot">HOT</span></a>
-            <a href="orders.php" class="<?= basename($_SERVER['PHP_SELF']) == 'orders.php' ? 'active' : '' ?>">Pesanan Saya</a>
+            <a href="track.php" class="<?= basename($_SERVER['PHP_SELF']) == 'track.php' ? 'active' : '' ?>">Lacak</a>
+            <button type="button" class="theme-toggle theme-icon-only" onclick="toggleTema()" title="Ganti mode gelap / terang"><?= $APP_TEMA === 'terang' ? '🌙' : '☀️' ?></button>
             <a href="admin/" class="btn btn-outline btn-sm">Admin</a>
         </nav>
         <button class="menu-toggle" onclick="document.body.classList.toggle('nav-open')">☰</button>
@@ -124,7 +127,7 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
                 <p>Undaangan Pernikahan, Khitanan, Pembeatan, Ulang tahun, Id Card, Baliho, Banner, Calender dan masih banyak lagi.</p>
                 <div class="hero-actions">
                     <a href="#katalog" class="btn btn-primary">Lihat Katalog ➜</a>
-                    <a href="orders.php" class="btn btn-cyan">Lacak Pesanan</a>
+                    <a href="track.php" class="btn btn-cyan">Lacak Pesanan</a>
                 </div>
                 <div class="hero-stats">
                     <div><strong class="red"><?= $stat_produk ?>+</strong><span>Produk Siap</span></div>
@@ -332,7 +335,7 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
             <h4>Menu</h4>
             <a href="index.php">Beranda</a>
             <a href="index.php#katalog">Katalog Produk</a>
-            <a href="orders.php">Lacak Pesanan</a>
+            <a href="track.php">Lacak Pesanan</a>
             <a href="admin/">Login Admin</a>
         </div>
         <div>
@@ -436,6 +439,8 @@ document.addEventListener('click', function (e) {
     setInterval(tick, 1000);
 })();
 </script>
+
+<?php include __DIR__ . '/partials/chat_widget.php'; ?>
 
 </body>
 </html>

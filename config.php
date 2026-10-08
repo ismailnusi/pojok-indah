@@ -113,6 +113,72 @@ if ($APP_TEMA !== 'terang' && $APP_TEMA !== 'gelap') {
     $APP_TEMA = 'gelap';
 }
 
+// ============ MIGRASI: PESANAN CUSTOM + CHAT ============
+function kolom_ada($tabel, $kolom) {
+    global $conn;
+    $t = $conn->real_escape_string((string)$tabel);
+    $k = $conn->real_escape_string((string)$kolom);
+    $res = $conn->query("SHOW COLUMNS FROM `$t` LIKE '$k'");
+    return $res && $res->num_rows > 0;
+}
+
+if (!kolom_ada('pesanan', 'is_custom')) {
+    $conn->query("ALTER TABLE pesanan ADD COLUMN is_custom TINYINT(1) NOT NULL DEFAULT 0");
+}
+if (!kolom_ada('pesanan', 'custom_nama')) {
+    $conn->query("ALTER TABLE pesanan ADD COLUMN custom_nama VARCHAR(255) DEFAULT NULL");
+}
+if (!kolom_ada('pesanan', 'custom_qty')) {
+    $conn->query("ALTER TABLE pesanan ADD COLUMN custom_qty INT NOT NULL DEFAULT 1");
+}
+if (!kolom_ada('pesanan', 'custom_harga')) {
+    $conn->query("ALTER TABLE pesanan ADD COLUMN custom_harga DECIMAL(12,0) NOT NULL DEFAULT 0");
+}
+
+$conn->query("CREATE TABLE IF NOT EXISTS chat (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nama VARCHAR(200) NOT NULL DEFAULT '',
+    no_hp VARCHAR(30) NOT NULL DEFAULT '',
+    kode_pesanan VARCHAR(20) DEFAULT NULL,
+    pesan TEXT NOT NULL,
+    dari ENUM('pelanggan','admin') NOT NULL DEFAULT 'pelanggan',
+    dibaca TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_hp (no_hp),
+    INDEX idx_kode (kode_pesanan)
+) ENGINE=InnoDB");
+
+$conn->query("INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('wa_admin', '6281234567890')");
+
+// Buat kode tracking unik: PS-YYYYMMDD-XXXX
+function buat_kode_pesanan() {
+    return 'PS-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid((string)mt_rand(), true)), 0, 4));
+}
+
+// Nomor WA admin ternormalisasi (awalan 62)
+function wa_admin() {
+    $no = preg_replace('/[^0-9]/', '', (string)get_setting('wa_admin', '6281234567890'));
+    if (strpos($no, '62') === 0) {
+        return $no;
+    }
+    if (strpos($no, '0') === 0) {
+        return '62' . substr($no, 1);
+    }
+    return $no;
+}
+
+// URL absolut halaman tracking publik
+function track_url($kode) {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== '') ? $_SERVER['HTTP_HOST'] : 'localhost';
+    $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+    $dir = preg_replace('#/admin$#', '', rtrim($dir, '/'));
+    if ($dir === '' || $dir === '.') {
+        $dir = '/WEBTES';
+    }
+    return $scheme . '://' . $host . $dir . '/track.php?kode=' . urlencode((string)$kode);
+}
+
 // ============ UPLOAD GAMBAR PRODUK ============
 define('UPLOAD_DIR_PRODUK', __DIR__ . '/assets/img/produk');
 define('UPLOAD_MAX_BYTE', 2 * 1024 * 1024);

@@ -73,6 +73,26 @@ CREATE TABLE IF NOT EXISTS pengaturan (
     nilai TEXT
 ) ENGINE=InnoDB;
 
+-- Kolom pesanan custom (aman diimport ulang pada MariaDB/MySQL 8)
+ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS is_custom TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS custom_nama VARCHAR(255) DEFAULT NULL;
+ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS custom_qty INT NOT NULL DEFAULT 1;
+ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS custom_harga DECIMAL(12,0) NOT NULL DEFAULT 0;
+
+-- Tabel Chat Pelanggan <-> Admin
+CREATE TABLE IF NOT EXISTS chat (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nama VARCHAR(200) NOT NULL DEFAULT '',
+    no_hp VARCHAR(30) NOT NULL DEFAULT '',
+    kode_pesanan VARCHAR(20) DEFAULT NULL,
+    pesan TEXT NOT NULL,
+    dari ENUM('pelanggan','admin') NOT NULL DEFAULT 'pelanggan',
+    dibaca TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_hp (no_hp),
+    INDEX idx_kode (kode_pesanan)
+) ENGINE=InnoDB;
+
 -- Tabel Galeri Produk (maks 3 gambar per produk)
 CREATE TABLE IF NOT EXISTS produk_gambar (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -137,5 +157,6 @@ INSERT INTO produk (id_kategori, nama_produk, deskripsi, harga, satuan, stok, mi
 INSERT IGNORE INTO admin (username, password, nama_lengkap) VALUES
 ('admin', '$2y$10$4xJehZSVZyftXDXFe1AvvO8LvK2cZ0usH1diMK3FMz5KpIQuNGbl.', 'Administrator');
 
--- Tema default situs
+-- Tema default situs + WA admin
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('tema', 'gelap');
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('wa_admin', '6281234567890');

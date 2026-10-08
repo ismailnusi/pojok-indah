@@ -9,20 +9,32 @@ if (!isset($_SESSION['admin_id'])) {
     exit;
 }
 
-// Tombol ganti tema situs (gelap <-> terang)
+// Tombol ganti tema situs (gelap <-> terang).
+// - Request ajax (fetch latar): balas JSON, TETAP di halaman ini.
+// - Request biasa (tanpa JS): kembali ke halaman yang sedang dibuka.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ganti_tema'])) {
     $baru = ($APP_TEMA === 'terang') ? 'gelap' : 'terang';
     set_setting('tema', $baru);
     $APP_TEMA = $baru;
-    header('Location: index.php?page=dashboard');
+    if (isset($_POST['ajax'])) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(array('ok' => true, 'tema' => $baru));
+        exit;
+    }
+    $kembali = isset($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] !== '' ? $_SERVER['REQUEST_URI'] : 'index.php?page=dashboard';
+    header('Location: ' . $kembali);
     exit;
 }
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-$halaman = array('dashboard', 'produk', 'tambah_produk', 'edit_produk', 'hapus_produk', 'pesanan', 'detail_pesanan', 'kategori', 'logout');
+$halaman = array('dashboard', 'produk', 'tambah_produk', 'edit_produk', 'hapus_produk', 'pesanan', 'detail_pesanan', 'pesanan_custom', 'kategori', 'chat', 'logout');
 if (!in_array($page, $halaman)) {
     $page = 'dashboard';
 }
+
+// Badge chat belum dibaca (sidebar)
+$__cu = q_row("SELECT COUNT(*) j FROM chat WHERE dari = 'pelanggan' AND dibaca = 0");
+$chat_unread = $__cu ? (int)$__cu['j'] : 0;
 ?>
 
 <?php if ($page == 'logout'): ?>
@@ -47,6 +59,8 @@ exit;
     <link rel="stylesheet" href="../assets/css/admin.css?v=<?= filemtime('../assets/css/admin.css') ?>">
 </head>
 <body class="admin-body<?= $APP_TEMA === 'terang' ? ' terang' : '' ?>">
+<script src="../assets/js/tema.js?v=<?= filemtime('../assets/js/tema.js') ?>"></script>
+<script>ppiTemaAwal();document.addEventListener('DOMContentLoaded',ppiTemaCat);</script>
 
 <div class="admin-layout">
     <!-- Sidebar -->
@@ -58,19 +72,21 @@ exit;
         <nav class="admin-nav">
             <a href="index.php?page=dashboard" class="<?= $page == 'dashboard' ? 'active' : '' ?>">📊 Dashboard</a>
             <a href="index.php?page=produk" class="<?= in_array($page, ['produk', 'tambah_produk', 'edit_produk']) ? 'active' : '' ?>">📦 Produk</a>
-            <a href="index.php?page=pesanan" class="<?= in_array($page, ['pesanan', 'detail_pesanan']) ? 'active' : '' ?>">🧾 Pesanan</a>
+            <a href="index.php?page=pesanan" class="<?= in_array($page, ['pesanan', 'detail_pesanan', 'pesanan_custom']) ? 'active' : '' ?>">🧾 Pesanan</a>
+            <a href="index.php?page=pesanan_custom" class="<?= $page == 'pesanan_custom' ? 'active' : '' ?>">➕ Input Custom</a>
+            <a href="index.php?page=chat" class="<?= $page == 'chat' ? 'active' : '' ?>">💬 Chat Pelanggan<?php if ($chat_unread > 0): ?> <span class="chat-unread"><?= $chat_unread ?></span><?php endif; ?></a>
             <a href="index.php?page=kategori" class="<?= $page == 'kategori' ? 'active' : '' ?>">🏷️ Kategori</a>
             <a href="../index.php" target="_blank">🌐 Lihat Toko</a>
             <a href="index.php?page=logout" onclick="return confirm('Yakin mau logout?')">🚪 Logout</a>
         </nav>
-        <form method="post" style="padding: 0 24px; margin: 12px 0 4px;">
-            <button type="submit" name="ganti_tema" value="1" class="btn <?= $APP_TEMA === 'terang' ? 'btn-outline' : 'btn-primary' ?> btn-sm btn-block" title="Ganti tema tampilan situs">
+        <form method="post" action="" onsubmit="return temaSubmit()" style="padding: 0 24px; margin: 12px 0 4px;">
+            <button type="submit" id="themeToggle" name="ganti_tema" value="1" class="btn btn-primary btn-sm btn-block" title="Ganti mode gelap / terang">
                 <?= $APP_TEMA === 'terang' ? '🌙 Mode Gelap' : '☀️ Mode Terang' ?>
             </button>
         </form>
         <div class="admin-user">
             <strong><?= htmlspecialchars($_SESSION['admin_nama'] ?? $_SESSION['admin_username']) ?></strong><br>
-            <span>🎨 Tema situs: <?= $APP_TEMA === 'terang' ? 'Terang' : 'Gelap' ?></span>
+            <span>🎨 Tema situs: <span id="temaStatus"><?= $APP_TEMA === 'terang' ? 'Terang' : 'Gelap' ?></span></span>
         </div>
     </aside>
 
@@ -475,6 +491,7 @@ exit;
         ?>
             <div class="admin-head-row">
                 <h1 class="admin-title">Daftar Pesanan</h1>
+                <a href="index.php?page=pesanan_custom" class="btn btn-primary">＋ Input Pesanan Custom</a>
             </div>
             <div class="filter-tabs">
                 <a href="index.php?page=pesanan" class="<?= $status_f == '' ? 'active' : '' ?>">Semua</a>
@@ -500,14 +517,22 @@ exit;
                             <tr><td colspan="7" class="text-center">Belum ada pesanan.</td></tr>
                         <?php else: while ($po = $list->fetch_assoc()): ?>
                             <tr>
-                                <td><strong><?= htmlspecialchars($po['kode_pesanan']) ?></strong></td>
+                                <td><strong><?= htmlspecialchars($po['kode_pesanan']) ?></strong><?php if (!empty($po['is_custom'])): ?> <span class="badge badge-proses">Custom</span><?php endif; ?></td>
                                 <td><?= htmlspecialchars($po['nama_pemesan']) ?></td>
                                 <td><?= htmlspecialchars($po['no_hp']) ?></td>
                                 <td><?= rupiah($po['total_harga']) ?></td>
                                 <?php $bd = status_badge($po['status']); ?>
                                 <td><span class="badge <?= $bd[0] ?>"><?= $bd[1] ?></span></td>
                                 <td><?= date('d M Y H:i', strtotime($po['created_at'])) ?></td>
-                                <td><a href="index.php?page=detail_pesanan&id=<?= $po['id'] ?>" class="btn btn-outline btn-sm">Detail</a></td>
+                                <td class="actions">
+                                    <a href="index.php?page=detail_pesanan&id=<?= $po['id'] ?>" class="btn btn-outline btn-sm">Detail</a>
+                                    <?php
+                                    $__tl = track_url($po['kode_pesanan']);
+                                    $__wateks = 'Halo ' . $po['nama_pemesan'] . ', ini link tracking pesanan ' . $po['kode_pesanan'] . ' (' . rupiah($po['total_harga']) . '): ' . $__tl;
+                                    $__wa = 'https://wa.me/' . preg_replace('/[^0-9]/', '', (string)$po['no_hp']) . '?text=' . urlencode($__wateks);
+                                    ?>
+                                    <a href="<?= htmlspecialchars($__wa) ?>" target="_blank" rel="noopener" class="btn btn-sm" style="background:#22c55e;color:#fff" title="Kirim link tracking via WhatsApp">💬 WA</a>
+                                </td>
                             </tr>
                         <?php endwhile; endif; ?>
                     </tbody>
@@ -542,7 +567,15 @@ exit;
         ?>
             <div class="admin-head-row">
                 <h1 class="admin-title">Detail Pesanan <?= htmlspecialchars($po['kode_pesanan']) ?></h1>
-                <a href="index.php?page=pesanan" class="btn btn-outline">← Kembali</a>
+                <div class="form-actions">
+                    <?php
+                    $__dtl = track_url($po['kode_pesanan']);
+                    $__dwateks = 'Halo ' . $po['nama_pemesan'] . ', ini link tracking pesanan ' . $po['kode_pesanan'] . ' (' . rupiah($po['total_harga']) . '): ' . $__dtl;
+                    $__dwa = 'https://wa.me/' . preg_replace('/[^0-9]/', '', (string)$po['no_hp']) . '?text=' . urlencode($__dwateks);
+                    ?>
+                    <a href="<?= htmlspecialchars($__dwa) ?>" target="_blank" rel="noopener" class="btn btn-sm" style="background:#22c55e;color:#fff">💬 Kirim Link WA</a>
+                    <a href="index.php?page=pesanan" class="btn btn-outline">← Kembali</a>
+                </div>
             </div>
 
             <div class="admin-panel">
@@ -569,6 +602,14 @@ exit;
                         </tr>
                     </thead>
                     <tbody>
+                        <?php if (!empty($po['is_custom'])): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($po['custom_nama'] ?: 'Pesanan Custom') ?> <span class="badge badge-proses">Custom</span></td>
+                                <td><?= rupiah($po['custom_harga']) ?></td>
+                                <td><?= (int)$po['custom_qty'] ?></td>
+                                <td><?= rupiah($po['total_harga']) ?></td>
+                            </tr>
+                        <?php endif; ?>
                         <?php if ($items): while ($it = $items->fetch_assoc()): ?>
                             <tr>
                                 <td><?= htmlspecialchars($it['nama_produk']) ?></td>
@@ -604,6 +645,292 @@ exit;
                     </div>
                 </form>
             </div>
+        <?php endif; ?>
+
+        <?php
+        // ============ INPUT PESANAN CUSTOM ============
+        if ($page == 'pesanan_custom'):
+            $err_c = '';
+            $hasil_custom = null;
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_custom'])) {
+                $nama    = bersihkan($_POST['nama'] ?? '');
+                $no_hp   = bersihkan($_POST['no_hp'] ?? '');
+                $alamat  = bersihkan($_POST['alamat'] ?? '');
+                $c_nama  = bersihkan($_POST['custom_nama'] ?? '');
+                $qty     = max(1, intval($_POST['custom_qty'] ?? 1));
+                $hrg     = max(0, floatval($_POST['custom_harga'] ?? 0));
+                $catatan = bersihkan($_POST['catatan'] ?? '');
+                $metode  = bersihkan($_POST['metode'] ?? 'COD');
+                $status  = $_POST['status'] ?? 'pending';
+                if (!in_array($status, array('pending', 'diproses', 'selesai', 'dibatalkan'), true)) {
+                    $status = 'pending';
+                }
+                if ($nama === '' || $no_hp === '' || $c_nama === '') {
+                    $err_c = 'Nama pelanggan, No. HP, dan deskripsi produk wajib diisi.';
+                } elseif ($hrg <= 0) {
+                    $err_c = 'Harga satuan harus lebih dari 0.';
+                } else {
+                    $total = $hrg * $qty;
+                    $kode = buat_kode_pesanan();
+                    $guard = 0;
+                    while (q_row("SELECT id FROM pesanan WHERE kode_pesanan = '" . bersihkan($kode) . "'") && $guard < 5) {
+                        $kode = buat_kode_pesanan();
+                        $guard++;
+                    }
+                    $isc = 1;
+                    $stmt = $conn->prepare("INSERT INTO pesanan (kode_pesanan, nama_pemesan, no_hp, alamat, catatan, total_harga, metode_bayar, status, is_custom, custom_nama, custom_qty, custom_harga) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+                    $stmt->bind_param('ssssssdsisid', $kode, $nama, $no_hp, $alamat, $catatan, $total, $metode, $status, $isc, $c_nama, $qty, $hrg);
+                    if ($stmt->execute()) {
+                        $id_baru = $stmt->insert_id;
+                        $stmt->close();
+                        $link = track_url($kode);
+                        $teks_wa = 'Halo ' . $nama . ', pesanan custom kamu (' . $c_nama . ') sudah kami catat. Total ' . rupiah($total) . '. Lacak statusnya di sini: ' . $link;
+                        $hasil_custom = array(
+                            'id' => $id_baru, 'kode' => $kode, 'nama' => $nama,
+                            'link' => $link,
+                            'wa' => 'https://wa.me/' . preg_replace('/[^0-9]/', '', $no_hp) . '?text=' . urlencode($teks_wa),
+                        );
+                    } else {
+                        $pesan_err = $stmt->error;
+                        $stmt->close();
+                        $err_c = 'Gagal menyimpan: ' . $pesan_err;
+                    }
+                }
+            }
+        ?>
+            <h1 class="admin-title">➕ Input Pesanan Custom</h1>
+            <p style="color:var(--muted);margin:-12px 0 20px;font-size:0.9rem">Untuk orderan di luar katalog (walk-in / WhatsApp). Kode tracking dibuat otomatis.</p>
+            <?php if ($err_c): ?>
+                <div class="alert alert-danger"><?= htmlspecialchars($err_c) ?></div>
+            <?php endif; ?>
+            <?php if ($hasil_custom): ?>
+                <div class="admin-panel">
+                    <h3>✅ Pesanan tersimpan!</h3>
+                    <div class="success-kode" style="margin:0 0 16px">
+                        <span>Kode Tracking</span>
+                        <strong><?= htmlspecialchars($hasil_custom['kode']) ?></strong>
+                    </div>
+                    <div class="form-group">
+                        <label>Link tracking untuk pelanggan</label>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap">
+                            <input type="text" id="customLink" class="form-control" readonly value="<?= htmlspecialchars($hasil_custom['link']) ?>" style="flex:1;min-width:220px">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="salinLink()">📋 Salin</button>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <a href="<?= htmlspecialchars($hasil_custom['wa']) ?>" target="_blank" rel="noopener" class="btn btn-primary">💬 Kirim via WhatsApp</a>
+                        <a href="index.php?page=detail_pesanan&id=<?= (int)$hasil_custom['id'] ?>" class="btn btn-outline">Lihat Detail</a>
+                        <a href="index.php?page=pesanan_custom" class="btn btn-outline">＋ Input Lagi</a>
+                    </div>
+                </div>
+                <script>
+                function salinLink() {
+                    var el = document.getElementById('customLink');
+                    el.select();
+                    el.setSelectionRange(0, 99999);
+                    var ok = false;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(el.value).then(function () { alert('Link tracking tersalin!'); }).catch(function () { document.execCommand('copy'); alert('Link tracking tersalin!'); });
+                        ok = true;
+                    } else {
+                        ok = document.execCommand('copy');
+                        alert(ok ? 'Link tracking tersalin!' : 'Gagal menyalin, salin manual ya.');
+                    }
+                }
+                </script>
+            <?php endif; ?>
+            <div class="admin-panel">
+                <form method="post" class="admin-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nama Pelanggan *</label>
+                            <input type="text" name="nama" class="form-control" required value="<?= htmlspecialchars($_POST['nama'] ?? '') ?>" placeholder="Nama pelanggan">
+                        </div>
+                        <div class="form-group">
+                            <label>No. WhatsApp / HP *</label>
+                            <input type="tel" name="no_hp" class="form-control" required value="<?= htmlspecialchars($_POST['no_hp'] ?? '') ?>" placeholder="08xxxxxxxxxx">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama / Deskripsi Produk Custom *</label>
+                        <input type="text" name="custom_nama" class="form-control" required value="<?= htmlspecialchars($_POST['custom_nama'] ?? '') ?>" placeholder="Contoh: Cetak Spanduk 3x1m, Undangan Custom 500pcs">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Jumlah / Qty *</label>
+                            <input type="number" name="custom_qty" class="form-control" min="1" value="<?= htmlspecialchars($_POST['custom_qty'] ?? '1') ?>" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Satuan (Rp) *</label>
+                            <input type="number" name="custom_harga" class="form-control" min="1" value="<?= htmlspecialchars($_POST['custom_harga'] ?? '') ?>" required placeholder="Contoh: 15000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Alamat (opsional)</label>
+                        <textarea name="alamat" class="form-control" rows="2" placeholder="Alamat pengiriman / ambil di toko"><?= htmlspecialchars($_POST['alamat'] ?? '') ?></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Catatan Tambahan (spesifikasi, ukuran, finishing)</label>
+                        <textarea name="catatan" class="form-control" rows="3" placeholder="Contoh: bahan flexi 280g, finishing mata ayam tiap 50cm..."><?= htmlspecialchars($_POST['catatan'] ?? '') ?></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Metode Pembayaran</label>
+                            <select name="metode" class="form-control">
+                                <option value="COD">COD / Bayar di Tempat</option>
+                                <option value="Transfer">Transfer Bank</option>
+                                <option value="OVO">OVO / Dana / GoPay</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status Pesanan</label>
+                            <select name="status" class="form-control">
+                                <option value="pending">Pending</option>
+                                <option value="diproses">Dikerjakan / Proses</option>
+                                <option value="selesai">Selesai</option>
+                                <option value="dibatalkan">Dibatalkan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" name="simpan_custom" class="btn btn-primary">💾 Simpan Pesanan</button>
+                        <a href="index.php?page=pesanan" class="btn btn-outline">Batal</a>
+                    </div>
+                </form>
+            </div>
+        <?php endif; ?>
+
+        <?php
+        // ============ CHAT PELANGGAN ============
+        if ($page == 'chat'):
+            $wa_msg = '';
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_wa'])) {
+                $w = preg_replace('/[^0-9]/', '', (string)($_POST['wa_admin'] ?? ''));
+                if ($w !== '') {
+                    set_setting('wa_admin', $w);
+                    $wa_msg = '<div class="alert alert-success">Nomor WhatsApp admin diperbarui.</div>';
+                } else {
+                    $wa_msg = '<div class="alert alert-danger">Nomor tidak valid.</div>';
+                }
+            }
+            $wa_now = wa_admin();
+        ?>
+            <div class="admin-head-row">
+                <h1 class="admin-title">💬 Chat Pelanggan</h1>
+                <span class="badge badge-proses" id="chatUnreadTop">Memuat...</span>
+            </div>
+            <?= $wa_msg ?>
+            <div class="admin-panel">
+                <form method="post" class="admin-form form-inline" style="margin-bottom:0">
+                    <label style="font-weight:600;font-size:0.88rem">No. WhatsApp Admin (tombol WA pelanggan):</label>
+                    <input type="text" name="wa_admin" class="form-control" value="<?= htmlspecialchars($wa_now) ?>" placeholder="628xxxxxxxxxx" style="max-width:200px">
+                    <button type="submit" name="simpan_wa" class="btn btn-primary btn-sm">Simpan</button>
+                </form>
+            </div>
+            <div class="chat-admin-layout">
+                <div class="admin-panel">
+                    <h3>Percakapan</h3>
+                    <div class="chat-list" id="chatList"><p class="chat-empty">Memuat...</p></div>
+                </div>
+                <div class="admin-panel chat-thread">
+                    <h3 id="chatThreadTitle">Pilih percakapan</h3>
+                    <div class="chat-thread-body" id="chatThread"><p class="chat-empty">Klik salah satu percakapan di kiri untuk mulai membalas.</p></div>
+                    <form class="chat-foot" id="chatReplyForm" hidden autocomplete="off">
+                        <input type="text" id="chatReplyText" placeholder="Tulis balasan..." maxlength="1000">
+                        <button type="submit" class="btn btn-primary btn-sm">Kirim ➤</button>
+                    </form>
+                </div>
+            </div>
+            <script>
+            (function () {
+                var listEl = document.getElementById('chatList'),
+                    threadEl = document.getElementById('chatThread'),
+                    titleEl = document.getElementById('chatThreadTitle'),
+                    replyForm = document.getElementById('chatReplyForm'),
+                    replyText = document.getElementById('chatReplyText'),
+                    topBadge = document.getElementById('chatUnreadTop'),
+                    aktifHp = '', lastThreadId = 0, seenThread = {}, tList = null, tThread = null;
+
+                function esc(s) {
+                    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                }
+                function jam(w) {
+                    try {
+                        var d = new Date(String(w).replace(' ', 'T'));
+                        var h = d.getHours(), m = d.getMinutes();
+                        return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+                    } catch (e) { return ''; }
+                }
+                function muatDaftar() {
+                    fetch('chat_api.php?aksi=daftar').then(function (r) { return r.json(); }).then(function (j) {
+                        if (!j || !j.ok) return;
+                        var total = 0, html = '';
+                        if (!j.rows.length) html = '<p class="chat-empty">Belum ada pesan masuk.</p>';
+                        for (var i = 0; i < j.rows.length; i++) {
+                            var c = j.rows[i], u = parseInt(c.unread, 10) || 0;
+                            total += u;
+                            html += '<button type="button" class="chat-list-item' + (c.no_hp === aktifHp ? ' active' : '') + '" data-hp="' + esc(c.no_hp) + '" data-nama="' + esc(c.nama) + '">'
+                                + '<strong>' + esc(c.nama || c.no_hp) + (u > 0 ? ' <span class="chat-unread">' + u + '</span>' : '') + '</strong>'
+                                + '<small>' + esc(c.no_hp) + ' • ' + esc((c.last_pesan || '').substring(0, 40)) + '</small>'
+                                + '</button>';
+                        }
+                        listEl.innerHTML = html;
+                        topBadge.textContent = total > 0 ? total + ' pesan belum dibaca' : 'Semua pesan terbaca';
+                        var btns = listEl.querySelectorAll('.chat-list-item');
+                        for (var k = 0; k < btns.length; k++) {
+                            btns[k].addEventListener('click', function () {
+                                aktifHp = this.getAttribute('data-hp');
+                                lastThreadId = 0; seenThread = {};
+                                titleEl.textContent = '💬 ' + this.getAttribute('data-nama') + ' (' + aktifHp + ')';
+                                replyForm.hidden = false;
+                                var all = listEl.querySelectorAll('.chat-list-item');
+                                for (var x = 0; x < all.length; x++) all[x].classList.remove('active');
+                                this.classList.add('active');
+                                muatThread();
+                            });
+                        }
+                    }).catch(function () {});
+                }
+                function tambahPesan(r) {
+                    if (!r || seenThread[r.id]) return;
+                    seenThread[r.id] = 1;
+                    if (r.id > lastThreadId) lastThreadId = r.id;
+                    var d = document.createElement('div');
+                    d.className = 'chat-msg ' + (r.dari === 'admin' ? 'out' : 'in');
+                    var cap = r.dari === 'admin' ? 'Kamu (Admin)' : esc(r.nama);
+                    if (r.kode_pesanan) cap += ' • <a href="../track.php?kode=' + encodeURIComponent(r.kode_pesanan) + '" target="_blank" style="color:var(--cyan)">' + esc(r.kode_pesanan) + '</a>';
+                    d.innerHTML = '<span class="chat-who">' + cap + '</span><span class="chat-txt">' + esc(r.pesan) + '</span><span class="chat-time">' + jam(r.created_at) + '</span>';
+                    var emp = threadEl.querySelector('.chat-empty');
+                    if (emp) threadEl.innerHTML = '';
+                    threadEl.appendChild(d);
+                    threadEl.scrollTop = threadEl.scrollHeight;
+                }
+                function muatThread() {
+                    if (!aktifHp) return;
+                    fetch('chat_api.php?aksi=thread&no_hp=' + encodeURIComponent(aktifHp)).then(function (r) { return r.json(); }).then(function (j) {
+                        if (!j || !j.ok) return;
+                        for (var i = 0; i < j.rows.length; i++) tambahPesan(j.rows[i]);
+                        muatDaftar();
+                    }).catch(function () {});
+                }
+                replyForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var t = replyText.value.trim();
+                    if (!aktifHp || t === '') return;
+                    replyText.value = '';
+                    var fd = new FormData();
+                    fd.append('no_hp', aktifHp);
+                    fd.append('pesan', t);
+                    fetch('chat_api.php?aksi=balas', { method: 'POST', body: fd })
+                        .then(function (r) { return r.json(); })
+                        .then(function () { setTimeout(muatThread, 500); })
+                        .catch(function () {});
+                });
+                muatDaftar();
+                tList = setInterval(muatDaftar, 8000);
+                tThread = setInterval(function () { if (aktifHp) muatThread(); }, 4000);
+            })();
+            </script>
         <?php endif; ?>
 
         <?php

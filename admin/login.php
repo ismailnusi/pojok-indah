@@ -43,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../assets/css/style.css?v=<?= filemtime('../assets/css/style.css') ?>">
 </head>
 <body class="auth-page<?= $APP_TEMA === 'terang' ? ' terang' : '' ?>">
+<script src="../assets/js/tema.js?v=<?= filemtime('../assets/js/tema.js') ?>"></script>
+<script>ppiTemaAwal();document.addEventListener('DOMContentLoaded',ppiTemaCat);</script>
 
 <div class="auth-box">
     <a href="../index.php" class="logo auth-logo">

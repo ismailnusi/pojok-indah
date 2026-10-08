@@ -34,6 +34,8 @@ $glist = get_gambar_list($p);
     <link rel="stylesheet" href="assets/css/style.css?v=<?= filemtime('assets/css/style.css') ?>">
 </head>
 <body class="<?= $APP_TEMA === 'terang' ? 'terang' : '' ?>">
+<script src="assets/js/tema.js?v=<?= filemtime('assets/js/tema.js') ?>"></script>
+<script>ppiTemaAwal();document.addEventListener('DOMContentLoaded',ppiTemaCat);</script>
 
 <header class="site-header">
     <div class="container header-inner">
@@ -49,7 +51,8 @@ $glist = get_gambar_list($p);
             <a href="index.php">Beranda</a>
             <a href="index.php#katalog">Katalog</a>
             <a href="index.php#promo">Promo<span class="nav-badge-hot">HOT</span></a>
-            <a href="orders.php">Pesanan Saya</a>
+            <a href="track.php">Lacak</a>
+            <button type="button" class="theme-toggle theme-icon-only" onclick="toggleTema()" title="Ganti mode gelap / terang"><?= $APP_TEMA === 'terang' ? '🌙' : '☀️' ?></button>
             <a href="admin/" class="btn btn-outline btn-sm">Admin</a>
         </nav>
         <button class="menu-toggle" onclick="document.body.classList.toggle('nav-open')">☰</button>
@@ -147,7 +150,7 @@ $glist = get_gambar_list($p);
             <h4>Menu</h4>
             <a href="index.php">Beranda</a>
             <a href="index.php#katalog">Katalog Produk</a>
-            <a href="orders.php">Lacak Pesanan</a>
+            <a href="track.php">Lacak Pesanan</a>
             <a href="admin/">Login Admin</a>
         </div>
         <div>
@@ -238,6 +241,8 @@ document.addEventListener('click', function (e) {
     }
 });
 </script>
+
+<?php include __DIR__ . '/partials/chat_widget.php'; ?>
 
 </body>
 </html>

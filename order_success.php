@@ -26,6 +26,8 @@ if (!$pesanan) {
     <link rel="stylesheet" href="assets/css/style.css?v=<?= filemtime('assets/css/style.css') ?>">
 </head>
 <body class="<?= $APP_TEMA === 'terang' ? 'terang' : '' ?>">
+<script src="assets/js/tema.js?v=<?= filemtime('assets/js/tema.js') ?>"></script>
+<script>ppiTemaAwal();document.addEventListener('DOMContentLoaded',ppiTemaCat);</script>
 
 <header class="site-header">
     <div class="container header-inner">
@@ -41,7 +43,8 @@ if (!$pesanan) {
             <a href="index.php">Beranda</a>
             <a href="index.php#katalog">Katalog</a>
             <a href="index.php#promo">Promo<span class="nav-badge-hot">HOT</span></a>
-            <a href="orders.php">Pesanan Saya</a>
+            <a href="track.php">Lacak</a>
+            <button type="button" class="theme-toggle theme-icon-only" onclick="toggleTema()" title="Ganti mode gelap / terang"><?= $APP_TEMA === 'terang' ? '🌙' : '☀️' ?></button>
             <a href="admin/" class="btn btn-outline btn-sm">Admin</a>
         </nav>
     </div>
@@ -66,12 +69,14 @@ if (!$pesanan) {
             </p>
 
             <div class="success-actions">
-                <a href="orders.php?kode=<?= urlencode($pesanan['kode_pesanan']) ?>" class="btn btn-outline">Lacak Pesanan</a>
+                <a href="track.php?kode=<?= urlencode($pesanan['kode_pesanan']) ?>" class="btn btn-outline">Lacak Pesanan</a>
                 <a href="index.php" class="btn btn-primary">Kembali ke Katalog</a>
             </div>
         </div>
     </div>
 </main>
+
+<?php $CHAT_KODE = $pesanan['kode_pesanan']; include __DIR__ . '/partials/chat_widget.php'; ?>
 
 </body>
 </html>
