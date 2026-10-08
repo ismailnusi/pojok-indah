@@ -349,7 +349,7 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
             <ul class="footer-contact" style="list-style:none">
                 <li>📍 Jl. Jl. Prof. Dr. H. Mansoer Pateda No.Desa, Pentadio Timur</li>
                 <li>📞 0822-9075-26377</li>
-                <li>✉️ ismailnusi02@gmail.com</li>
+                <li>✉️ mailamal002@gmail.com</li>
             </ul>
         </div>
     </div>
