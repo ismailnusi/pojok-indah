@@ -2,14 +2,15 @@
 include 'config.php';
 require 'funcs/gambar.php';
 
-// Filter kategori
+// Filter kategori (0 = semua; JANGAN filter id_kategori = 0 karena tak ada yang cocok)
 $where = "AND p.is_aktif = 1";
 $kat_dipilih = 0;
 if (isset($_GET['kat']) && is_numeric($_GET['kat'])) {
-    $kat_dipilih = intval($_GET['kat']);
-    $where .= " AND p.id_kategori = $kat_dipilih";
+    $kat_dipilih = max(0, intval($_GET['kat']));
+    if ($kat_dipilih > 0) {
+        $where .= " AND p.id_kategori = $kat_dipilih";
+    }
 }
-$kat_dipilih = max(0, $kat_dipilih);
 
 // Pencarian
 $cari = '';
