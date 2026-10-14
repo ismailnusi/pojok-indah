@@ -83,7 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <button type="submit" class="btn btn-primary btn-block">Login</button>
     </form>
-    <p class="auth-hint">Default: username <code>admin</code> password <code>admin123</code></p>
 </div>
 
 </body>

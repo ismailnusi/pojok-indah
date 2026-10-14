@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ganti_tema'])) {
 }
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-$halaman = array('dashboard', 'produk', 'tambah_produk', 'edit_produk', 'hapus_produk', 'pesanan', 'detail_pesanan', 'pesanan_custom', 'kategori', 'chat', 'log', 'logout');
+$halaman = array('dashboard', 'produk', 'tambah_produk', 'edit_produk', 'hapus_produk', 'pesanan', 'detail_pesanan', 'pesanan_custom', 'kategori', 'chat', 'log', 'ganti_password', 'logout');
 if (!in_array($page, $halaman)) {
     $page = 'dashboard';
 }
@@ -88,6 +88,7 @@ exit;
             <a href="index.php?page=chat" class="<?= $page == 'chat' ? 'active' : '' ?>">💬 Chat Pelanggan<?php if ($chat_unread > 0): ?> <span class="chat-unread"><?= $chat_unread ?></span><?php endif; ?></a>
             <a href="index.php?page=kategori" class="<?= $page == 'kategori' ? 'active' : '' ?>">🏷️ Kategori</a>
             <a href="index.php?page=log" class="<?= $page == 'log' ? 'active' : '' ?>">📝 Log Aktivitas</a>
+            <a href="index.php?page=ganti_password" class="<?= $page == 'ganti_password' ? 'active' : '' ?>">🔑 Ganti Password</a>
             <a href="../index.php" target="_blank">🌐 Lihat Toko</a>
             <a href="index.php?page=logout" onclick="return confirm('Yakin mau logout?')">🚪 Logout</a>
         </nav>
@@ -1034,6 +1035,64 @@ exit;
                         <?php endwhile; endif; ?>
                     </tbody>
                 </table>
+            </div>
+        <?php endif; ?>
+
+        <?php
+        // ============ GANTI PASSWORD ============
+        if ($page == 'ganti_password'):
+            $pw_msg = '';
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_pw'])) {
+                csrf_wajib();
+                $lama = (string)($_POST['pw_lama'] ?? '');
+                $baru = (string)($_POST['pw_baru'] ?? '');
+                $konf = (string)($_POST['pw_konf'] ?? '');
+                $row = q_row("SELECT password FROM admin WHERE id = " . (int)$_SESSION['admin_id']);
+                if (!$row || !password_verify($lama, (string)$row['password'])) {
+                    $pw_msg = '<div class="alert alert-danger">Password lama salah.</div>';
+                } elseif (strlen($baru) < 6) {
+                    $pw_msg = '<div class="alert alert-danger">Password baru minimal 6 karakter.</div>';
+                } elseif ($baru !== $konf) {
+                    $pw_msg = '<div class="alert alert-danger">Konfirmasi password tidak sama.</div>';
+                } else {
+                    $hash = password_hash($baru, PASSWORD_DEFAULT);
+                    $stmt = $conn->prepare("UPDATE admin SET password = ? WHERE id = ?");
+                    $aid = (int)$_SESSION['admin_id'];
+                    $stmt->bind_param('si', $hash, $aid);
+                    if ($stmt->execute()) {
+                        $pw_msg = '<div class="alert alert-success">Password berhasil diganti. Gunakan password baru saat login berikutnya.</div>';
+                        catat('ganti_password', '');
+                    } else {
+                        $pw_msg = '<div class="alert alert-danger">Gagal menyimpan password.</div>';
+                    }
+                    $stmt->close();
+                }
+            }
+        ?>
+            <h1 class="admin-title">🔑 Ganti Password</h1>
+            <p style="color:var(--muted);margin:-12px 0 20px;font-size:0.9rem">Masuk sebagai <strong><?= htmlspecialchars($_SESSION['admin_username'] ?? '') ?></strong>. Minimal 6 karakter.</p>
+            <?= $pw_msg ?>
+            <div class="admin-panel">
+                <form method="post" class="admin-form">
+                    <?= csrf_field() ?>
+                    <div class="form-group">
+                        <label>Password Lama</label>
+                        <input type="password" name="pw_lama" class="form-control" required autocomplete="current-password">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Password Baru</label>
+                            <input type="password" name="pw_baru" class="form-control" required minlength="6" autocomplete="new-password">
+                        </div>
+                        <div class="form-group">
+                            <label>Konfirmasi Password Baru</label>
+                            <input type="password" name="pw_konf" class="form-control" required minlength="6" autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" name="simpan_pw" class="btn btn-primary">💾 Simpan Password</button>
+                    </div>
+                </form>
             </div>
         <?php endif; ?>
 
