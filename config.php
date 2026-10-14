@@ -124,6 +124,8 @@ $conn->query("CREATE TABLE IF NOT EXISTS pengaturan (
 ) ENGINE=InnoDB");
 $conn->query("INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('tema', 'gelap')");
 $conn->query("INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('app_url', '')");
+$conn->query("INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('recovery_q', '')");
+$conn->query("INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('recovery_a', '')");
 
 function get_setting($kunci, $default = '') {
     global $conn;

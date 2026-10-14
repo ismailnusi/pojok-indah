@@ -1094,6 +1094,24 @@ exit;
                     $stmt->close();
                 }
             }
+            // Pertanyaan keamanan untuk lupa password (jawaban disimpan hash)
+            $rec_msg = '';
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_recovery'])) {
+                csrf_wajib();
+                $rq = trim((string)($_POST['recovery_q'] ?? ''));
+                $ra = trim((string)($_POST['recovery_a'] ?? ''));
+                if ($rq === '' || $ra === '') {
+                    $rec_msg = '<div class="alert alert-danger">Pertanyaan dan jawaban wajib diisi.</div>';
+                } elseif (mb_strlen($ra) < 3) {
+                    $rec_msg = '<div class="alert alert-danger">Jawaban minimal 3 karakter.</div>';
+                } else {
+                    set_setting('recovery_q', mb_substr($rq, 0, 200));
+                    set_setting('recovery_a', password_hash($ra, PASSWORD_DEFAULT));
+                    catat('ubah_recovery', '');
+                    $rec_msg = '<div class="alert alert-success">Pertanyaan keamanan tersimpan.</div>';
+                }
+            }
+            $rec_q_now = get_setting('recovery_q', '');
         ?>
             <h1 class="admin-title">🔑 Ganti Password</h1>
             <p style="color:var(--muted);margin:-12px 0 20px;font-size:0.9rem">Masuk sebagai <strong><?= htmlspecialchars($_SESSION['admin_username'] ?? '') ?></strong>. Minimal 6 karakter.</p>
@@ -1117,6 +1135,25 @@ exit;
                     </div>
                     <div class="form-actions">
                         <button type="submit" name="simpan_pw" class="btn btn-primary">💾 Simpan Password</button>
+                    </div>
+                </form>
+            </div>
+            <h1 class="admin-title" style="margin-top:8px">🛡️ Pertanyaan Keamanan</h1>
+            <p style="color:var(--muted);margin:-12px 0 20px;font-size:0.9rem">Dipakai saat lupa password. Jawaban tersimpan ter-hash, hanya kamu yang tahu.</p>
+            <?= $rec_msg ?>
+            <div class="admin-panel">
+                <form method="post" class="admin-form">
+                    <?= csrf_field() ?>
+                    <div class="form-group">
+                        <label>Pertanyaan</label>
+                        <input type="text" name="recovery_q" class="form-control" required maxlength="200" value="<?= htmlspecialchars($rec_q_now !== '' ? $rec_q_now : 'Apa nama hewan peliharaan pertamamu?') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Jawaban Baru <?= $rec_q_now !== '' ? '(terisi — isi untuk mengganti)' : '' ?></label>
+                        <input type="text" name="recovery_a" class="form-control" required minlength="3" placeholder="Jawaban rahasia" autocomplete="off">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" name="simpan_recovery" class="btn btn-primary">💾 Simpan Pertanyaan</button>
                     </div>
                 </form>
             </div>

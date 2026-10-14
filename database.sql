@@ -176,3 +176,5 @@ INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('wa_admin', '6282290752637'
 -- Kunci URL dasar situs (kosong = otomatis). Untuk mengunci domain produksi,
 -- jalankan: UPDATE pengaturan SET nilai='https://store.rekapojokindah.id' WHERE kunci='app_url';
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('app_url', '');
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('recovery_q', '');
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('recovery_a', '');
