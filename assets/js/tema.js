@@ -49,10 +49,10 @@ function toggleTema() {
 }
 
 /* Dipakai form admin: toggle instan + sync server di latar. */
-function temaSubmit() {
+function temaSubmit(frm) {
     toggleTema();
     try {
-        var fd = new FormData();
+        var fd = frm ? new FormData(frm) : new FormData();
         fd.append('ganti_tema', '1');
         fd.append('ajax', '1');
         fetch(window.location.pathname + window.location.search, {

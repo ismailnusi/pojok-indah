@@ -29,6 +29,11 @@ if ($aksi === 'kirim' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (mb_strlen($pesan) > 1000) {
         $pesan = mb_substr($pesan, 0, 1000);
     }
+    // Throttle anti-spam: maks 1 pesan per 3 detik per nomor
+    $hp_q = $conn->real_escape_string($hp);
+    if (q_row("SELECT id FROM chat WHERE no_hp = '$hp_q' AND created_at > (NOW() - INTERVAL 3 SECOND) ORDER BY id DESC LIMIT 1")) {
+        jkeluar(array('ok' => false, 'error' => 'Terlalu cepat. Tunggu sebentar ya.'));
+    }
     $stmt = $conn->prepare("INSERT INTO chat (nama, no_hp, kode_pesanan, pesan, dari, dibaca) VALUES (?, ?, ?, ?, 'pelanggan', 0)");
     if (!$stmt) {
         jkeluar(array('ok' => false, 'error' => 'DB error.'));
@@ -112,6 +117,9 @@ if ($aksi === 'thread') {
 
 // Admin membalas
 if ($aksi === 'balas' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_cek()) {
+        jkeluar(array('ok' => false, 'error' => 'Sesi kedaluwarsa. Muat ulang halaman admin.'));
+    }
     $hp    = preg_replace('/[^0-9]/', '', (string)($_POST['no_hp'] ?? ''));
     $pesan = trim((string)($_POST['pesan'] ?? ''));
     $kode  = trim((string)($_POST['kode'] ?? ''));
@@ -131,6 +139,9 @@ if ($aksi === 'balas' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $ok = $stmt->execute();
     $id = $stmt->insert_id;
     $stmt->close();
+    if ($ok) {
+        catat('balas_chat', $hp . ': ' . mb_substr($pesan, 0, 80));
+    }
     jkeluar(array('ok' => $ok, 'id' => $id));
 }
 

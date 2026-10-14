@@ -1,18 +1,29 @@
 <?php
 ob_start();
-session_start();
 require __DIR__ . '/../config.php';
 require_once __DIR__ . '/../funcs/gambar.php';
+aman_session_start();
 
 if (!isset($_SESSION['admin_id'])) {
     header('Location: login.php');
     exit;
 }
 
+// Auto-logout bila idle 30 menit
+if (isset($_SESSION['last_aktif']) && (time() - (int)$_SESSION['last_aktif'] > 30 * 60)) {
+    catat('logout_idle');
+    session_unset();
+    session_destroy();
+    header('Location: login.php?idle=1');
+    exit;
+}
+$_SESSION['last_aktif'] = time();
+
 // Tombol ganti tema situs (gelap <-> terang).
 // - Request ajax (fetch latar): balas JSON, TETAP di halaman ini.
 // - Request biasa (tanpa JS): kembali ke halaman yang sedang dibuka.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ganti_tema'])) {
+    csrf_wajib();
     $baru = ($APP_TEMA === 'terang') ? 'gelap' : 'terang';
     set_setting('tema', $baru);
     $APP_TEMA = $baru;
@@ -27,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ganti_tema'])) {
 }
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-$halaman = array('dashboard', 'produk', 'tambah_produk', 'edit_produk', 'hapus_produk', 'pesanan', 'detail_pesanan', 'pesanan_custom', 'kategori', 'chat', 'logout');
+$halaman = array('dashboard', 'produk', 'tambah_produk', 'edit_produk', 'hapus_produk', 'pesanan', 'detail_pesanan', 'pesanan_custom', 'kategori', 'chat', 'log', 'logout');
 if (!in_array($page, $halaman)) {
     $page = 'dashboard';
 }
@@ -76,10 +87,12 @@ exit;
             <a href="index.php?page=pesanan_custom" class="<?= $page == 'pesanan_custom' ? 'active' : '' ?>">➕ Input Custom</a>
             <a href="index.php?page=chat" class="<?= $page == 'chat' ? 'active' : '' ?>">💬 Chat Pelanggan<?php if ($chat_unread > 0): ?> <span class="chat-unread"><?= $chat_unread ?></span><?php endif; ?></a>
             <a href="index.php?page=kategori" class="<?= $page == 'kategori' ? 'active' : '' ?>">🏷️ Kategori</a>
+            <a href="index.php?page=log" class="<?= $page == 'log' ? 'active' : '' ?>">📝 Log Aktivitas</a>
             <a href="../index.php" target="_blank">🌐 Lihat Toko</a>
             <a href="index.php?page=logout" onclick="return confirm('Yakin mau logout?')">🚪 Logout</a>
         </nav>
-        <form method="post" action="" onsubmit="return temaSubmit()" style="padding: 0 24px; margin: 12px 0 4px;">
+        <form method="post" action="" onsubmit="return temaSubmit(this)" style="padding: 0 24px; margin: 12px 0 4px;">
+            <?= csrf_field() ?>
             <button type="submit" id="themeToggle" name="ganti_tema" value="1" class="btn btn-primary btn-sm btn-block" title="Ganti mode gelap / terang">
                 <?= $APP_TEMA === 'terang' ? '🌙 Mode Gelap' : '☀️ Mode Terang' ?>
             </button>
@@ -219,7 +232,11 @@ exit;
                                 <td><?= $pr['is_aktif'] ? '✅' : '❌' ?></td>
                                 <td class="actions">
                                     <a href="index.php?page=edit_produk&id=<?= $pr['id'] ?>" class="btn btn-outline btn-sm">Edit</a>
-                                    <a href="index.php?page=hapus_produk&id=<?= $pr['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Hapus produk ini?')">Hapus</a>
+                                    <form method="post" action="index.php?page=hapus_produk" style="display:inline" onsubmit="return confirm('Hapus produk ini?')">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="id" value="<?= $pr['id'] ?>">
+                                        <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
                                 </td>
                             </tr>
                         <?php endwhile; endif; ?>
@@ -244,6 +261,7 @@ exit;
 
             $pesan_form = '';
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                csrf_wajib();
                 $nama = bersihkan($_POST['nama_produk']);
                 $desc = bersihkan($_POST['deskripsi']);
                 $harga = intval($_POST['harga']);
@@ -267,6 +285,7 @@ exit;
                     if ($stmt->execute()) {
                         $id_baru = $stmt->insert_id;
                         $stmt->close();
+                        catat('tambah_produk', "#$id_baru $nama");
                         $u = 0;
                         foreach ($files_up as $fn) {
                             $fe = bersihkan($fn);
@@ -337,6 +356,7 @@ exit;
                     $stmt->bind_param('issdsisiiii', $kat, $nama, $desc, $harga, $satuan, $stok, $min, $waktu, $unggulan, $aktif, $edit_id);
                     if ($stmt->execute()) {
                         $stmt->close();
+                        catat('edit_produk', "#$edit_id $nama");
                         if ($err_up) {
                             $data = q_row("SELECT * FROM produk WHERE id = $edit_id");
                             $pesan_form = '<div class="alert alert-success">Produk tersimpan, namun ada gambar yang gagal: ' . htmlspecialchars($err_up) . '</div>';
@@ -368,6 +388,7 @@ exit;
             <?= $pesan_form ?>
             <div class="admin-panel">
                 <form method="post" class="admin-form" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
                     <div class="form-group">
                         <label>Nama Produk</label>
                         <input type="text" name="nama_produk" class="form-control" required value="<?= htmlspecialchars($data['nama_produk']) ?>">
@@ -461,8 +482,14 @@ exit;
         <?php
         // ============ HAPUS PRODUK ============
         if ($page == 'hapus_produk'):
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                header('Location: index.php?page=produk');
+                exit;
+            }
+            csrf_wajib();
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
             if ($id > 0) {
+                $nm = q_row("SELECT nama_produk FROM produk WHERE id = $id");
                 $del = q_row("SELECT gambar FROM produk WHERE id = $id");
                 foreach (get_gallery($id) as $gf) {
                     hapus_gambar_produk($gf['nama_file']);
@@ -471,6 +498,7 @@ exit;
                     hapus_gambar_produk($del['gambar']);
                 }
                 $conn->query("DELETE FROM produk WHERE id = $id");
+                catat('hapus_produk', "#$id " . ($nm ? $nm['nama_produk'] : ''));
             }
             header('Location: index.php?page=produk');
             exit;
@@ -551,6 +579,8 @@ exit;
             }
 
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                csrf_wajib();
+                $status_lama = $po['status'];
                 $status_baru = bersihkan($_POST['status']);
                 $statuses_valid = array('pending', 'diproses', 'selesai', 'dibatalkan');
                 if (in_array($status_baru, $statuses_valid)) {
@@ -558,6 +588,7 @@ exit;
                     $stmt->bind_param('si', $status_baru, $pid);
                     $stmt->execute();
                     $stmt->close();
+                    catat('update_status', $po['kode_pesanan'] . ": $status_lama -> $status_baru");
                 }
                 header("Location: index.php?page=detail_pesanan&id=$pid");
                 exit;
@@ -631,6 +662,7 @@ exit;
             <div class="admin-panel">
                 <h3>Update Status</h3>
                 <form method="post" class="admin-form">
+                    <?= csrf_field() ?>
                     <div class="form-row">
                         <div class="form-group">
                             <select name="status" class="form-control">
@@ -653,6 +685,7 @@ exit;
             $err_c = '';
             $hasil_custom = null;
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_custom'])) {
+                csrf_wajib();
                 $nama    = bersihkan($_POST['nama'] ?? '');
                 $no_hp   = bersihkan($_POST['no_hp'] ?? '');
                 $alamat  = bersihkan($_POST['alamat'] ?? '');
@@ -683,6 +716,7 @@ exit;
                     if ($stmt->execute()) {
                         $id_baru = $stmt->insert_id;
                         $stmt->close();
+                        catat('pesanan_custom', "$kode $nama " . rupiah($total));
                         $link = track_url($kode);
                         $teks_wa = 'Halo ' . $nama . ', pesanan custom kamu (' . $c_nama . ') sudah kami catat. Total ' . rupiah($total) . '. Lacak statusnya di sini: ' . $link;
                         $hasil_custom = array(
@@ -741,6 +775,7 @@ exit;
             <?php endif; ?>
             <div class="admin-panel">
                 <form method="post" class="admin-form">
+                    <?= csrf_field() ?>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nama Pelanggan *</label>
@@ -805,9 +840,11 @@ exit;
         if ($page == 'chat'):
             $wa_msg = '';
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_wa'])) {
+                csrf_wajib();
                 $w = preg_replace('/[^0-9]/', '', (string)($_POST['wa_admin'] ?? ''));
                 if ($w !== '') {
                     set_setting('wa_admin', $w);
+                    catat('ubah_wa_admin', $w);
                     $wa_msg = '<div class="alert alert-success">Nomor WhatsApp admin diperbarui.</div>';
                 } else {
                     $wa_msg = '<div class="alert alert-danger">Nomor tidak valid.</div>';
@@ -822,6 +859,7 @@ exit;
             <?= $wa_msg ?>
             <div class="admin-panel">
                 <form method="post" class="admin-form form-inline" style="margin-bottom:0">
+                    <?= csrf_field() ?>
                     <label style="font-weight:600;font-size:0.88rem">No. WhatsApp Admin (tombol WA pelanggan):</label>
                     <input type="text" name="wa_admin" class="form-control" value="<?= htmlspecialchars($wa_now) ?>" placeholder="628xxxxxxxxxx" style="max-width:200px">
                     <button type="submit" name="simpan_wa" class="btn btn-primary btn-sm">Simpan</button>
@@ -842,6 +880,7 @@ exit;
                 </div>
             </div>
             <script>
+            var CSRF_TOKEN = <?= json_encode(csrf_token()) ?>;
             (function () {
                 var listEl = document.getElementById('chatList'),
                     threadEl = document.getElementById('chatThread'),
@@ -919,6 +958,7 @@ exit;
                     if (!aktifHp || t === '') return;
                     replyText.value = '';
                     var fd = new FormData();
+                    fd.append('csrf', CSRF_TOKEN);
                     fd.append('no_hp', aktifHp);
                     fd.append('pesan', t);
                     fetch('chat_api.php?aksi=balas', { method: 'POST', body: fd })
@@ -938,16 +978,21 @@ exit;
         if ($page == 'kategori'):
             $pesan_kat = '';
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_kategori'])) {
+                csrf_wajib();
                 $nama = bersihkan($_POST['nama_kategori']);
                 $icon = bersihkan($_POST['icon'] ?? '📦');
                 if ($nama != '') {
                     $conn->query("INSERT INTO kategori (nama_kategori, icon) VALUES ('$nama', '$icon')");
+                    catat('tambah_kategori', $nama);
                     $pesan_kat = '<div class="alert alert-success">Kategori ditambahkan.</div>';
                 }
             }
-            if (isset($_GET['hapus']) && is_numeric($_GET['hapus'])) {
-                $hapus_id = intval($_GET['hapus']);
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['hapus_kategori'])) {
+                csrf_wajib();
+                $hapus_id = intval($_POST['hapus_kategori']);
+                $kn = q_row("SELECT nama_kategori FROM kategori WHERE id = $hapus_id");
                 $conn->query("DELETE FROM kategori WHERE id = $hapus_id");
+                catat('hapus_kategori', "#$hapus_id " . ($kn ? $kn['nama_kategori'] : ''));
                 $pesan_kat = '<div class="alert alert-success">Kategori dihapus.</div>';
             }
             $list = q("SELECT k.*, (SELECT COUNT(*) FROM produk p WHERE p.id_kategori = k.id) jml_produk FROM kategori k ORDER BY k.id");
@@ -956,6 +1001,7 @@ exit;
             <?= $pesan_kat ?>
             <div class="admin-panel">
                 <form method="post" class="admin-form form-inline">
+                    <?= csrf_field() ?>
                     <input type="text" name="nama_kategori" class="form-control" placeholder="Nama kategori baru" required>
                     <input type="text" name="icon" class="form-control" placeholder="Icon (emoji)" maxlength="8" style="max-width:100px">
                     <button type="submit" name="tambah_kategori" class="btn btn-primary">Tambah</button>
@@ -977,7 +1023,48 @@ exit;
                                 <td><?= $kt['icon'] ?></td>
                                 <td><strong><?= htmlspecialchars($kt['nama_kategori']) ?></strong></td>
                                 <td><?= $kt['jml_produk'] ?></td>
-                                <td><a href="index.php?page=kategori&hapus=<?= $kt['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Hapus kategori? Produk terkait ikut terhapus.')">Hapus</a></td>
+                                <td>
+                                    <form method="post" action="index.php?page=kategori" style="display:inline" onsubmit="return confirm('Hapus kategori? Produk terkait ikut terhapus.')">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="hapus_kategori" value="<?= $kt['id'] ?>">
+                                        <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endwhile; endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+
+        <?php
+        // ============ LOG AKTIVITAS ============
+        if ($page == 'log'):
+            $logs = q("SELECT * FROM log_aktivitas ORDER BY id DESC LIMIT 100");
+        ?>
+            <h1 class="admin-title">📝 Log Aktivitas</h1>
+            <p style="color:var(--muted);margin:-12px 0 20px;font-size:0.9rem">100 aktivitas terakhir (login, CRUD, status, tema).</p>
+            <div class="admin-panel">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Admin</th>
+                            <th>Aksi</th>
+                            <th>Detail</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!$logs || $logs->num_rows == 0): ?>
+                            <tr><td colspan="5" class="text-center">Belum ada aktivitas tercatat.</td></tr>
+                        <?php else: while ($lg = $logs->fetch_assoc()): ?>
+                            <tr>
+                                <td><?= date('d M Y H:i', strtotime($lg['created_at'])) ?></td>
+                                <td><?= htmlspecialchars($lg['admin'] ?: '-') ?></td>
+                                <td><span class="badge badge-proses"><?= htmlspecialchars($lg['aksi']) ?></span></td>
+                                <td><?= htmlspecialchars(mb_substr((string)$lg['detail'], 0, 120)) ?></td>
+                                <td><?= htmlspecialchars($lg['ip']) ?></td>
                             </tr>
                         <?php endwhile; endif; ?>
                     </tbody>

@@ -1,6 +1,6 @@
 <?php
-session_start();
 require __DIR__ . '/../config.php';
+aman_session_start();
 
 if (isset($_SESSION['admin_id'])) {
     header('Location: index.php');
@@ -12,22 +12,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = bersihkan($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    $stmt = $conn->prepare("SELECT * FROM admin WHERE username = ? LIMIT 1");
-    $stmt->bind_param('s', $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $admin = $result->fetch_assoc();
-
-    if ($admin && password_verify($password, $admin['password'])) {
-        $_SESSION['admin_id'] = $admin['id'];
-        $_SESSION['admin_username'] = $admin['username'];
-        $_SESSION['admin_nama'] = $admin['nama_lengkap'];
-        header('Location: index.php');
-        exit;
+    if (!boleh_login($username)) {
+        $error = 'Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.';
+        catat('login_terkunci', $username);
     } else {
-        $error = 'Username atau password salah!';
+        $stmt = $conn->prepare("SELECT * FROM admin WHERE username = ? LIMIT 1");
+        $stmt->bind_param('s', $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $admin = $result->fetch_assoc();
+
+        if ($admin && password_verify($password, $admin['password'])) {
+            session_regenerate_id(true);
+            reset_gagal($username);
+            $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['admin_username'] = $admin['username'];
+            $_SESSION['admin_nama'] = $admin['nama_lengkap'];
+            $_SESSION['last_aktif'] = time();
+            catat('login_sukses', $username);
+            header('Location: index.php');
+            exit;
+        } else {
+            catat_gagal($username);
+            catat('login_gagal', $username);
+            $error = 'Username atau password salah!';
+        }
+        $stmt->close();
     }
-    $stmt->close();
 }
 ?>
 <!DOCTYPE html>
@@ -56,6 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <?php if ($error): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+    <?php if (isset($_GET['idle'])): ?>
+        <div class="alert alert-danger">Sesi berakhir karena tidak aktif. Silakan login kembali.</div>
     <?php endif; ?>
 
     <form method="post">

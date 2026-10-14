@@ -150,6 +150,124 @@ function set_setting($kunci, $nilai) {
     return $ok;
 }
 
+// ============ KEAMANAN: MODE ERROR ============
+// Di localhost tampilkan error (debug); di produksi sembunyikan dari pengunjung.
+$__is_local = in_array($_SERVER['HTTP_HOST'] ?? '', array('localhost', '127.0.0.1', '::1'), true);
+error_reporting(E_ALL);
+ini_set('display_errors', $__is_local ? '1' : '0');
+ini_set('log_errors', '1');
+
+// ============ KEAMANAN: SESSION AMAN ============
+function aman_session_start() {
+    if (session_status() !== PHP_SESSION_NONE) {
+        return;
+    }
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    session_set_cookie_params(array(
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ));
+    session_start();
+}
+
+// ============ KEAMANAN: CSRF ============
+function csrf_token() {
+    aman_session_start();
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf'];
+}
+
+function csrf_field() {
+    return '<input type="hidden" name="csrf" value="' . htmlspecialchars(csrf_token()) . '">';
+}
+
+function csrf_cek() {
+    aman_session_start();
+    $t = isset($_POST['csrf']) ? (string)$_POST['csrf'] : '';
+    return isset($_SESSION['csrf']) && $t !== '' && hash_equals((string)$_SESSION['csrf'], $t);
+}
+
+function csrf_wajib() {
+    if (!csrf_cek()) {
+        http_response_code(403);
+        die('Sesi kedaluwarsa atau token tidak valid. Muat ulang halaman lalu coba lagi.');
+    }
+}
+
+// ============ KEAMANAN: RATE LIMIT LOGIN + AUDIT LOG ============
+$conn->query("CREATE TABLE IF NOT EXISTS login_gagal (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL DEFAULT '',
+    ip VARCHAR(45) NOT NULL DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user_ip (username, ip),
+    INDEX idx_waktu (created_at)
+) ENGINE=InnoDB");
+
+$conn->query("CREATE TABLE IF NOT EXISTS log_aktivitas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin VARCHAR(100) NOT NULL DEFAULT '',
+    aksi VARCHAR(100) NOT NULL DEFAULT '',
+    detail TEXT,
+    ip VARCHAR(45) NOT NULL DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_waktu (created_at)
+) ENGINE=InnoDB");
+
+function ip_client() {
+    return (string)($_SERVER['REMOTE_ADDR'] ?? '');
+}
+
+// Maks 5x gagal per 15 menit per username+IP
+function boleh_login($username) {
+    global $conn;
+    $u = $conn->real_escape_string(mb_substr((string)$username, 0, 100));
+    $ip = $conn->real_escape_string(mb_substr(ip_client(), 0, 45));
+    $r = q_row("SELECT COUNT(*) j FROM login_gagal WHERE username = '$u' AND ip = '$ip' AND created_at > (NOW() - INTERVAL 15 MINUTE)");
+    return !$r || (int)$r['j'] < 5;
+}
+
+function catat_gagal($username) {
+    global $conn;
+    $u = mb_substr((string)$username, 0, 100);
+    $ip = mb_substr(ip_client(), 0, 45);
+    $stmt = $conn->prepare("INSERT INTO login_gagal (username, ip) VALUES (?, ?)");
+    if ($stmt) {
+        $stmt->bind_param('ss', $u, $ip);
+        $stmt->execute();
+        $stmt->close();
+    }
+}
+
+function reset_gagal($username) {
+    global $conn;
+    $u = $conn->real_escape_string(mb_substr((string)$username, 0, 100));
+    $ip = $conn->real_escape_string(mb_substr(ip_client(), 0, 45));
+    $conn->query("DELETE FROM login_gagal WHERE username = '$u' AND ip = '$ip'");
+}
+
+function catat($aksi, $detail = '') {
+    global $conn;
+    $admin = '';
+    if (session_status() !== PHP_SESSION_NONE && isset($_SESSION['admin_username'])) {
+        $admin = (string)$_SESSION['admin_username'];
+    }
+    $a = mb_substr((string)$aksi, 0, 100);
+    $d = (string)$detail;
+    $ip = mb_substr(ip_client(), 0, 45);
+    $stmt = $conn->prepare("INSERT INTO log_aktivitas (admin, aksi, detail, ip) VALUES (?, ?, ?, ?)");
+    if ($stmt) {
+        $stmt->bind_param('ssss', $admin, $a, $d, $ip);
+        $stmt->execute();
+        $stmt->close();
+    }
+}
+
 // Tema aktif situs: 'gelap' atau 'terang'
 $APP_TEMA = get_setting('tema', 'gelap');
 if ($APP_TEMA !== 'terang' && $APP_TEMA !== 'gelap') {
