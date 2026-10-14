@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ganti_tema'])) {
 }
 
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-$halaman = array('dashboard', 'produk', 'tambah_produk', 'edit_produk', 'hapus_produk', 'pesanan', 'detail_pesanan', 'pesanan_custom', 'kategori', 'chat', 'log', 'ganti_password', 'logout');
+$halaman = array('dashboard', 'produk', 'tambah_produk', 'edit_produk', 'hapus_produk', 'pesanan', 'detail_pesanan', 'hapus_pesanan', 'pesanan_custom', 'kategori', 'chat', 'log', 'ganti_password', 'logout');
 if (!in_array($page, $halaman)) {
     $page = 'dashboard';
 }
@@ -507,6 +507,27 @@ exit;
         ?>
 
         <?php
+        // ============ HAPUS PESANAN (riwayat + rincian item ikut terhapus via CASCADE) ============
+        if ($page == 'hapus_pesanan'):
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                header('Location: index.php?page=pesanan');
+                exit;
+            }
+            csrf_wajib();
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            if ($id > 0) {
+                $dp = q_row("SELECT kode_pesanan, nama_pemesan, total_harga FROM pesanan WHERE id = $id");
+                $conn->query("DELETE FROM pesanan WHERE id = $id");
+                if ($conn->affected_rows > 0) {
+                    catat('hapus_pesanan', ($dp ? $dp['kode_pesanan'] . ' ' . $dp['nama_pemesan'] . ' ' . rupiah($dp['total_harga']) : "#$id"));
+                }
+            }
+            header('Location: index.php?page=pesanan');
+            exit;
+        endif;
+        ?>
+
+        <?php
         // ============ PESANAN ============
         if ($page == 'pesanan'):
             $status_f = isset($_GET['status']) ? trim((string)$_GET['status']) : '';
@@ -555,6 +576,11 @@ exit;
                                 <td><?= date('d M Y H:i', strtotime($po['created_at'])) ?></td>
                                 <td class="actions">
                                     <a href="index.php?page=detail_pesanan&id=<?= $po['id'] ?>" class="btn btn-outline btn-sm">Detail</a>
+                                    <form method="post" action="index.php?page=hapus_pesanan" style="display:inline" onsubmit="return confirm('Yakin ingin menghapus pesanan <?= htmlspecialchars($po['kode_pesanan']) ?> beserta rincian itemnya?')">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="id" value="<?= $po['id'] ?>">
+                                        <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                                    </form>
                                     <?php
                                     $__tl = track_url($po['kode_pesanan']);
                                     $__wateks = 'Halo ' . $po['nama_pemesan'] . ', ini link tracking pesanan ' . $po['kode_pesanan'] . ' (' . rupiah($po['total_harga']) . '): ' . $__tl;
