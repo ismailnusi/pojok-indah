@@ -79,6 +79,19 @@ ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS custom_nama VARCHAR(255) DEFAULT NU
 ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS custom_qty INT NOT NULL DEFAULT 1;
 ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS custom_harga DECIMAL(12,0) NOT NULL DEFAULT 0;
 
+-- Tabel Kode Reset Password (kedaluwarsa 10 menit, sekali pakai)
+CREATE TABLE IF NOT EXISTS password_reset (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL DEFAULT '',
+    kode_hash VARCHAR(255) NOT NULL,
+    percobaan INT NOT NULL DEFAULT 0,
+    terpakai TINYINT(1) NOT NULL DEFAULT 0,
+    kedaluwarsa DATETIME NOT NULL,
+    ip VARCHAR(45) NOT NULL DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user (username)
+) ENGINE=InnoDB;
+
 -- Tabel Chat Pelanggan <-> Admin
 CREATE TABLE IF NOT EXISTS chat (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -159,7 +172,7 @@ INSERT IGNORE INTO admin (username, password, nama_lengkap) VALUES
 
 -- Tema default situs + WA admin
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('tema', 'gelap');
-INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('wa_admin', '6281234567890');
+INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('wa_admin', '6282290752637');
 -- Kunci URL dasar situs (kosong = otomatis). Untuk mengunci domain produksi,
 -- jalankan: UPDATE pengaturan SET nilai='https://store.rekapojokindah.id' WHERE kunci='app_url';
 INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('app_url', '');

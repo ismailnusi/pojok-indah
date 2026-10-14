@@ -209,6 +209,18 @@ $conn->query("CREATE TABLE IF NOT EXISTS login_gagal (
     INDEX idx_waktu (created_at)
 ) ENGINE=InnoDB");
 
+$conn->query("CREATE TABLE IF NOT EXISTS password_reset (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL DEFAULT '',
+    kode_hash VARCHAR(255) NOT NULL,
+    percobaan INT NOT NULL DEFAULT 0,
+    terpakai TINYINT(1) NOT NULL DEFAULT 0,
+    kedaluwarsa DATETIME NOT NULL,
+    ip VARCHAR(45) NOT NULL DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user (username)
+) ENGINE=InnoDB");
+
 $conn->query("CREATE TABLE IF NOT EXISTS log_aktivitas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     admin VARCHAR(100) NOT NULL DEFAULT '',
@@ -309,7 +321,9 @@ $conn->query("CREATE TABLE IF NOT EXISTS chat (
     INDEX idx_kode (kode_pesanan)
 ) ENGINE=InnoDB");
 
-$conn->query("INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('wa_admin', '6281234567890')");
+$conn->query("INSERT IGNORE INTO pengaturan (kunci, nilai) VALUES ('wa_admin', '6282290752637')");
+// Samakan nomor lama (dummy) ke nomor admin resmi bila belum pernah diubah
+$conn->query("UPDATE pengaturan SET nilai = '6282290752637' WHERE kunci = 'wa_admin' AND nilai = '6281234567890'");
 
 // Buat kode tracking unik: PS-YYYYMMDD-XXXX
 function buat_kode_pesanan() {

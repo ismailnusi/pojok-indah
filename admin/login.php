@@ -71,6 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if (isset($_GET['idle'])): ?>
         <div class="alert alert-danger">Sesi berakhir karena tidak aktif. Silakan login kembali.</div>
     <?php endif; ?>
+    <?php if (isset($_GET['reset'])): ?>
+        <div class="alert alert-success">Password berhasil direset. Silakan login dengan password baru.</div>
+    <?php endif; ?>
 
     <form method="post">
         <div class="form-group">
@@ -83,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <button type="submit" class="btn btn-primary btn-block">Login</button>
     </form>
+    <p style="text-align:center;margin-top:12px;font-size:0.85rem"><a href="lupa_password.php" style="color:var(--cyan)">Lupa password?</a></p>
 </div>
 
 </body>
