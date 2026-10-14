@@ -164,10 +164,10 @@ $CHAT_KODE = $p ? $p['kode_pesanan'] : $cari_kode;
                 <div class="tracking-details">
                     <div class="info-item"><span>👤 Pemesan</span><strong><?= htmlspecialchars($p['nama_pemesan']) ?></strong></div>
                     <div class="info-item"><span>📞 No. HP</span><strong><?= htmlspecialchars($p['no_hp']) ?></strong></div>
-                    <div class="info-item"><span>📍 Alamat</span><strong><?= htmlspecialchars($p['alamat']) ?></strong></div>
+                    <div class="info-item"><span>📍 Alamat</span><strong><?= nl2br(htmlspecialchars(teks_db($p['alamat']))) ?></strong></div>
                     <div class="info-item"><span>💳 Metode Bayar</span><strong><?= htmlspecialchars($p['metode_bayar']) ?></strong></div>
                     <?php if (!empty($p['catatan'])): ?>
-                        <div class="info-item"><span>📝 Catatan</span><strong><?= htmlspecialchars($p['catatan']) ?></strong></div>
+                        <div class="info-item"><span>📝 Catatan</span><strong><?= nl2br(htmlspecialchars(teks_db($p['catatan']))) ?></strong></div>
                     <?php endif; ?>
                 </div>
 

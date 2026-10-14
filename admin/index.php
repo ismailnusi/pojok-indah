@@ -263,13 +263,15 @@ exit;
             $pesan_form = '';
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 csrf_wajib();
-                $nama = bersihkan($_POST['nama_produk']);
-                $desc = bersihkan($_POST['deskripsi']);
+                $nama = trim((string)($_POST['nama_produk'] ?? ''));
+                // Tanpa bersihkan(): nilai ini dikirim via bind_param, escape manual
+                // justru tersimpan literal (\n, \') dan merusak baris baru deskripsi.
+                $desc = trim((string)($_POST['deskripsi'] ?? ''));
                 $harga = intval($_POST['harga']);
-                $satuan = bersihkan($_POST['satuan']);
+                $satuan = trim((string)($_POST['satuan'] ?? ''));
                 $stok = intval($_POST['stok']);
                 $min = intval($_POST['minimal_order']);
-                $waktu = bersihkan($_POST['waktu_pengerjaan']);
+                $waktu = trim((string)($_POST['waktu_pengerjaan'] ?? ''));
                 $kat = intval($_POST['id_kategori']);
                 $unggulan = isset($_POST['is_unggulan']) ? 1 : 0;
                 $aktif = isset($_POST['is_aktif']) ? 1 : 0;
@@ -646,7 +648,7 @@ exit;
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 csrf_wajib();
                 $status_lama = $po['status'];
-                $status_baru = bersihkan($_POST['status']);
+                $status_baru = trim((string)($_POST['status'] ?? ''));
                 $statuses_valid = array('pending', 'diproses', 'selesai', 'dibatalkan');
                 if (in_array($status_baru, $statuses_valid)) {
                     $stmt = $conn->prepare("UPDATE pesanan SET status = ? WHERE id = ?");
@@ -680,9 +682,9 @@ exit;
                     <div class="info-item"><span>👤 Nama</span><strong><?= htmlspecialchars($po['nama_pemesan']) ?></strong></div>
                     <div class="info-item"><span>📞 No. HP</span><strong><?= htmlspecialchars($po['no_hp']) ?></strong></div>
                     <div class="info-item"><span>✉️ Email</span><strong><?= htmlspecialchars($po['email'] ?: '-') ?></strong></div>
-                    <div class="info-item"><span>📍 Alamat</span><strong><?= htmlspecialchars($po['alamat']) ?></strong></div>
+                    <div class="info-item"><span>📍 Alamat</span><strong><?= nl2br(htmlspecialchars(teks_db($po['alamat']))) ?></strong></div>
                     <div class="info-item"><span>💳 Metode</span><strong><?= htmlspecialchars($po['metode_bayar']) ?></strong></div>
-                    <div class="info-item"><span>📝 Catatan</span><strong><?= htmlspecialchars($po['catatan'] ?: '-') ?></strong></div>
+                    <div class="info-item"><span>📝 Catatan</span><strong><?= nl2br(htmlspecialchars($po['catatan'] ? teks_db($po['catatan']) : '-')) ?></strong></div>
                 </div>
             </div>
 
@@ -751,14 +753,14 @@ exit;
             $hasil_custom = null;
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan_custom'])) {
                 csrf_wajib();
-                $nama    = bersihkan($_POST['nama'] ?? '');
-                $no_hp   = bersihkan($_POST['no_hp'] ?? '');
-                $alamat  = bersihkan($_POST['alamat'] ?? '');
-                $c_nama  = bersihkan($_POST['custom_nama'] ?? '');
+                $nama    = trim((string)($_POST['nama'] ?? ''));
+                $no_hp   = trim((string)($_POST['no_hp'] ?? ''));
+                $alamat  = trim((string)($_POST['alamat'] ?? ''));
+                $c_nama  = trim((string)($_POST['custom_nama'] ?? ''));
                 $qty     = max(1, intval($_POST['custom_qty'] ?? 1));
                 $hrg     = max(0, floatval($_POST['custom_harga'] ?? 0));
-                $catatan = bersihkan($_POST['catatan'] ?? '');
-                $metode  = bersihkan($_POST['metode'] ?? 'COD');
+                $catatan = trim((string)($_POST['catatan'] ?? ''));
+                $metode  = trim((string)($_POST['metode'] ?? 'COD'));
                 $status  = $_POST['status'] ?? 'pending';
                 if (!in_array($status, array('pending', 'diproses', 'selesai', 'dibatalkan'), true)) {
                     $status = 'pending';

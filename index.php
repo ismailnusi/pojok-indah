@@ -192,7 +192,7 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
                             <div class="card-body">
                                 <div class="card-cat"><?= htmlspecialchars($p['nama_kategori']) ?></div>
                                 <h3 class="card-title"><a href="product.php?id=<?= $p['id'] ?>"><?= htmlspecialchars($p['nama_produk']) ?></a></h3>
-                                <p class="card-desc"><?= htmlspecialchars(mb_substr(str_replace(array("\r", "\n"), ' ', (string)($p['deskripsi'] ?? '')), 0, 70)) ?>...</p>
+                                <p class="card-desc"><?= htmlspecialchars(mb_substr(str_replace(array("\r", "\n"), ' ', teks_db($p['deskripsi'] ?? '')), 0, 70)) ?>...</p>
                                 <div class="card-meta">
                                     <span>⏱ <?= htmlspecialchars($p['waktu_pengerjaan']) ?></span>
                                     <span>📦 Min. <?= $p['minimal_order'] ?> <?= htmlspecialchars($p['satuan']) ?></span>

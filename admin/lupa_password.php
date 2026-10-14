@@ -17,7 +17,7 @@ $pertanyaan = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lanjut'])) {
     csrf_wajib();
-    $username = bersihkan($_POST['username'] ?? '');
+    $username = trim((string)($_POST['username'] ?? ''));
     $adm = null;
     if ($username !== '') {
         $stmt = $conn->prepare("SELECT username FROM admin WHERE username = ? LIMIT 1");
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lanjut'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verifikasi'])) {
     csrf_wajib();
     $tahap = 2;
-    $username = bersihkan($_POST['username'] ?? '');
+    $username = trim((string)($_POST['username'] ?? ''));
     $jawaban  = trim((string)($_POST['jawaban'] ?? ''));
     $baru     = (string)($_POST['pw_baru'] ?? '');
     $konf     = (string)($_POST['pw_konf'] ?? '');

@@ -9,7 +9,7 @@ if (isset($_SESSION['admin_id'])) {
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = bersihkan($_POST['username'] ?? '');
+    $username = trim((string)($_POST['username'] ?? ''));
     $password = $_POST['password'] ?? '';
 
     if (!boleh_login($username)) {

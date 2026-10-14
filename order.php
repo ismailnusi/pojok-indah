@@ -16,12 +16,14 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $produk_id   = isset($_POST['produk_id']) ? intval($_POST['produk_id']) : 0;
     $jumlah      = isset($_POST['jumlah']) ? intval($_POST['jumlah']) : 0;
-    $nama        = bersihkan($_POST['nama'] ?? '');
-    $no_hp       = bersihkan($_POST['no_hp'] ?? '');
-    $email       = bersihkan($_POST['email'] ?? '');
-    $alamat      = bersihkan($_POST['alamat'] ?? '');
-    $catatan     = bersihkan($_POST['catatan'] ?? '');
-    $metode      = bersihkan($_POST['metode'] ?? 'COD');
+    // Tanpa bersihkan(): semua nilai di bawah dikirim via bind_param;
+    // escape manual justru tersimpan literal (\n, \') di database.
+    $nama        = trim((string)($_POST['nama'] ?? ''));
+    $no_hp       = trim((string)($_POST['no_hp'] ?? ''));
+    $email       = trim((string)($_POST['email'] ?? ''));
+    $alamat      = trim((string)($_POST['alamat'] ?? ''));
+    $catatan     = trim((string)($_POST['catatan'] ?? ''));
+    $metode      = trim((string)($_POST['metode'] ?? 'COD'));
 
     $detail = q_row("SELECT * FROM produk WHERE id = $produk_id AND is_aktif = 1");
 

@@ -33,10 +33,27 @@ function rupiah($angka) {
     return 'Rp ' . number_format((float)$angka, 0, ',', '.');
 }
 
-// Sanitasi input
+// Sanitasi input HANYA untuk nilai yang diinterpolasi ke string SQL.
+// JANGAN dipakai untuk nilai bind_param() (prepared statement): backslash
+// escape-nya akan tersimpan literal di DB (mis. \n, \') dan merusak teks.
 function bersihkan($data) {
     global $conn;
     return $conn->real_escape_string(trim((string)$data));
+}
+
+// Normalisasi teks dari DB untuk ditampilkan.
+// Memperbaiki data lama yang terlanjur tersimpan double-escape
+// (baris baru literal \r\n / \n dan kutip \'). Data baru yang benar
+// (tanpa backslash) dikembalikan apa adanya.
+function teks_db($s) {
+    $s = (string)$s;
+    if (strpos($s, '\\') === false) {
+        return $s;
+    }
+    if (preg_match('/\\\\[nrt\'"\\\\0]/', $s)) {
+        $s = stripcslashes($s);
+    }
+    return $s;
 }
 
 // Query aman: kembalikan mysqli_result atau false tanpa fatal

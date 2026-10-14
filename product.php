@@ -100,7 +100,7 @@ $glist = get_gambar_list($p);
                 <div class="detail-desc">
                     <h3>Deskripsi Produk</h3>
                     <?php
-                    $__paras = preg_split("/\n\s*\n/", (string)($p['deskripsi'] ?? ''));
+                    $__paras = preg_split("/\n\s*\n/", teks_db($p['deskripsi'] ?? ''));
                     $__paras = array_values(array_filter(array_map('trim', $__paras), function ($x) { return $x !== ''; }));
                     if (empty($__paras)) {
                         echo '<p>-</p>';
