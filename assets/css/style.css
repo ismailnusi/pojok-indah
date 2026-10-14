@@ -1332,6 +1332,11 @@ body.lb-lock {
 .detail-desc p {
     color: var(--muted);
     font-size: 0.92rem;
+    margin-bottom: 10px;
+}
+
+.detail-desc p:last-child {
+    margin-bottom: 0;
 }
 
 /* ============ ALERTS ============ */

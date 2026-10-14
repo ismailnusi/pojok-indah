@@ -438,7 +438,8 @@ exit;
                     </div>
                     <div class="form-group">
                         <label>Deskripsi</label>
-                        <textarea name="deskripsi" class="form-control" rows="3"><?= htmlspecialchars($data['deskripsi']) ?></textarea>
+                        <textarea name="deskripsi" id="deskripsi" class="form-control" rows="5" placeholder="Bisa copy-paste dari Word / Google Docs — format otomatis dirapikan"><?= htmlspecialchars($data['deskripsi']) ?></textarea>
+                        <small class="form-hint">💡 Paste dari Word/Docs aman: tag liar dibuang, paragraf &amp; baris baru dipertahankan.</small>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -478,6 +479,43 @@ exit;
                     </div>
                 </form>
             </div>
+            <script>
+            // Pembersih paste Word/Google Docs untuk kolom Deskripsi.
+            // Mengambil versi plain-text clipboard (tanpa tag HTML liar),
+            // lalu merapikan spasi & baris baru, disisipkan di posisi kursor.
+            (function () {
+                var ta = document.getElementById('deskripsi');
+                if (!ta) return;
+                function rapikan(t) {
+                    return t
+                        .replace(/\r\n?/g, '\n')
+                        .replace(/(\u00a0|\u2000|\u2001|\u2002|\u2003|\u2004|\u2005|\u2006|\u2007|\u2008|\u2009|\u200a|\u200b|\u202f|\u205f|\u3000|\ufeff)/g, ' ')
+                        .replace(/[\u2018\u2019]/g, "'")
+                        .replace(/[\u201c\u201d]/g, '"')
+                        .replace(/[\u2013\u2014]/g, '-')
+                        .replace(/\u2022/g, '- ')
+                        .replace(/[ \t]+\n/g, '\n')
+                        .replace(/\n[ \t]+/g, '\n')
+                        .replace(/[ \t]{2,}/g, ' ')
+                        .replace(/\n{3,}/g, '\n\n')
+                        .replace(/^\n+/, '')
+                        .replace(/\s+$/, '');
+                }
+                ta.addEventListener('paste', function (e) {
+                    var cd = e.clipboardData || window.clipboardData;
+                    if (!cd) return;
+                    var teks = cd.getData('text/plain');
+                    if (!teks) return;
+                    e.preventDefault();
+                    var bersih = rapikan(teks);
+                    var awal = ta.selectionStart || 0, akhir = ta.selectionEnd || 0;
+                    ta.value = ta.value.slice(0, awal) + bersih + ta.value.slice(akhir);
+                    var pos = awal + bersih.length;
+                    ta.setSelectionRange(pos, pos);
+                    ta.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            })();
+            </script>
         <?php endif; ?>
 
         <?php
