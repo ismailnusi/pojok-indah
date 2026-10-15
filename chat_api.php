@@ -12,7 +12,7 @@ function admin_login() {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    return isset($_SESSION['admin_id']);
+    return isset($_SESSION['admin_id']) || !empty($_SESSION['admin_logged_in']);
 }
 
 $aksi = isset($_REQUEST['aksi']) ? trim((string)$_REQUEST['aksi']) : '';

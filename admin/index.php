@@ -1,23 +1,7 @@
 <?php
-ob_start();
-require __DIR__ . '/../config.php';
+// Seluruh proteksi (DB, session, wajib login, idle-timeout) via Session Guard.
+require __DIR__ . '/auth.php';
 require_once __DIR__ . '/../funcs/gambar.php';
-aman_session_start();
-
-if (!isset($_SESSION['admin_id'])) {
-    header('Location: login.php');
-    exit;
-}
-
-// Auto-logout bila idle 30 menit
-if (isset($_SESSION['last_aktif']) && (time() - (int)$_SESSION['last_aktif'] > 30 * 60)) {
-    catat('logout_idle');
-    session_unset();
-    session_destroy();
-    header('Location: login.php?idle=1');
-    exit;
-}
-$_SESSION['last_aktif'] = time();
 
 // Tombol ganti tema situs (gelap <-> terang).
 // - Request ajax (fetch latar): balas JSON, TETAP di halaman ini.

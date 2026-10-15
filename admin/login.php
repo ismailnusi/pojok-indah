@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             session_regenerate_id(true);
             reset_gagal($username);
             $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_username'] = $admin['username'];
             $_SESSION['admin_nama'] = $admin['nama_lengkap'];
             $_SESSION['last_aktif'] = time();
