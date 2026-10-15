@@ -75,7 +75,6 @@ $wa_link = 'https://wa.me/' . wa_admin() . '?text=' . urlencode(implode("\n", $w
             <a href="index.php#promo">Promo<span class="nav-badge-hot">HOT</span></a>
             <a href="track.php">Lacak</a>
             <button type="button" class="theme-toggle theme-icon-only" onclick="toggleTema()" title="Ganti mode gelap / terang"><?= $APP_TEMA === 'terang' ? '🌙' : '☀️' ?></button>
-            <a href="admin/" class="btn btn-outline btn-sm">Admin</a>
         </nav>
     </div>
 </header>
@@ -126,7 +125,6 @@ $wa_link = 'https://wa.me/' . wa_admin() . '?text=' . urlencode(implode("\n", $w
             <a href="index.php">Beranda</a>
             <a href="index.php#katalog">Katalog Produk</a>
             <a href="track.php">Lacak Pesanan</a>
-            <a href="admin/">Login Admin</a>
         </div>
         <div>
             <h4>Kategori Populer</h4>
