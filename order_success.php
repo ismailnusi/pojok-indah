@@ -7,11 +7,40 @@ if (!isset($_GET['kode']) || trim((string)$_GET['kode']) === '') {
 }
 $kode_raw = trim((string)$_GET['kode']);
 $kode = bersihkan($kode_raw);
-$pesanan = q_row("SELECT kode_pesanan, no_hp FROM pesanan WHERE kode_pesanan = '$kode'");
+$pesanan = q_row("SELECT * FROM pesanan WHERE kode_pesanan = '$kode'");
 if (!$pesanan) {
     header('Location: index.php');
     exit;
 }
+
+// Susun pesan WhatsApp otomatis (baris baru via urlencode = %0A)
+$wa_baris = array(
+    'Halo Admin Percetakan Pojok Indah!',
+    'Pesanan saya sudah dibuat melalui website.',
+    '',
+    'Kode Pesanan: ' . $pesanan['kode_pesanan'],
+    'Nama: ' . $pesanan['nama_pemesan'],
+    'No. HP: ' . $pesanan['no_hp'],
+    'Produk:',
+);
+if (!empty($pesanan['is_custom'])) {
+    $wa_baris[] = '- ' . ($pesanan['custom_nama'] ?: 'Pesanan Custom')
+        . ' (' . (int)$pesanan['custom_qty'] . 'x) - ' . rupiah($pesanan['total_harga']);
+} else {
+    $pid = (int)$pesanan['id'];
+    $witems = q("SELECT dp.*, p.nama_produk, p.satuan FROM detail_pesanan dp JOIN produk p ON dp.id_produk = p.id WHERE dp.id_pesanan = $pid");
+    if ($witems) {
+        while ($wi = $witems->fetch_assoc()) {
+            $wa_baris[] = '- ' . $wi['nama_produk']
+                . ' (' . (int)$wi['jumlah'] . ' ' . $wi['satuan'] . ') - ' . rupiah($wi['subtotal']);
+        }
+    }
+}
+$wa_baris[] = 'Total: ' . rupiah($pesanan['total_harga']);
+$wa_baris[] = 'Pembayaran: ' . $pesanan['metode_bayar'];
+$wa_baris[] = '';
+$wa_baris[] = 'Mohon konfirmasi dan info desain. Terima kasih!';
+$wa_link = 'https://wa.me/' . wa_admin() . '?text=' . urlencode(implode("\n", $wa_baris));
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -72,6 +101,7 @@ if (!$pesanan) {
                 <a href="track.php?kode=<?= urlencode($pesanan['kode_pesanan']) ?>" class="btn btn-outline">Lacak Pesanan</a>
                 <a href="index.php" class="btn btn-primary">Kembali ke Katalog</a>
             </div>
+            <a href="<?= htmlspecialchars($wa_link) ?>" target="_blank" rel="noopener" class="btn btn-wa btn-block">📲 Kirim Detail ke WA Admin</a>
         </div>
     </div>
 </main>
