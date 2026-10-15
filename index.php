@@ -31,7 +31,7 @@ $offset = ($hal - 1) * $per_halaman;
 $produk = q("SELECT p.*, k.nama_kategori, k.icon, k.id as kid
     FROM produk p JOIN kategori k ON p.id_kategori = k.id
     WHERE 1 $where
-    ORDER BY p.is_unggulan DESC, p.id ASC
+    ORDER BY p.is_unggulan DESC, p.id DESC
     LIMIT $offset, $per_halaman");
 
 // Kumpulkan baris + preload galeri (1 query untuk semua produk halaman ini)

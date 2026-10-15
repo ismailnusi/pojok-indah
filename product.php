@@ -16,7 +16,7 @@ if (!$p) {
 
 // Produk terkait
 $kat_id = (int)$p['id_kategori'];
-$produk_lain = q("SELECT * FROM produk WHERE id_kategori = $kat_id AND id != $id AND is_aktif = 1 LIMIT 4");
+$produk_lain = q("SELECT * FROM produk WHERE id_kategori = $kat_id AND id != $id AND is_aktif = 1 ORDER BY id DESC LIMIT 4");
 
 // Galeri produk (maks 3 gambar, klik untuk memperbesar)
 $glist = get_gambar_list($p);
