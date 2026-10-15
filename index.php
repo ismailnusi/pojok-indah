@@ -1,6 +1,7 @@
 <?php
 include 'config.php';
 require 'funcs/gambar.php';
+catat_kunjungan();
 
 // Filter kategori (0 = semua; JANGAN filter id_kategori = 0 karena tak ada yang cocok)
 $where = "AND p.is_aktif = 1";

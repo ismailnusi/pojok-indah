@@ -1,5 +1,6 @@
 <?php
 include 'config.php';
+catat_kunjungan();
 
 if (!isset($_GET['kode']) || trim((string)$_GET['kode']) === '') {
     header('Location: index.php');

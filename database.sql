@@ -79,6 +79,18 @@ ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS custom_nama VARCHAR(255) DEFAULT NU
 ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS custom_qty INT NOT NULL DEFAULT 1;
 ALTER TABLE pesanan ADD COLUMN IF NOT EXISTS custom_harga DECIMAL(12,0) NOT NULL DEFAULT 0;
 
+-- Tabel Statistik Pengunjung (1 baris per IP + halaman per hari)
+CREATE TABLE IF NOT EXISTS visitor_stats (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45) NOT NULL DEFAULT '',
+    user_agent VARCHAR(255) NOT NULL DEFAULT '',
+    visit_date DATE NOT NULL,
+    page_url VARCHAR(255) NOT NULL DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_tanggal (visit_date),
+    UNIQUE KEY uniq_kunjungan (visit_date, ip_address, page_url(191))
+) ENGINE=InnoDB;
+
 -- Tabel Kode Reset Password (kedaluwarsa 10 menit, sekali pakai)
 CREATE TABLE IF NOT EXISTS password_reset (
     id INT AUTO_INCREMENT PRIMARY KEY,

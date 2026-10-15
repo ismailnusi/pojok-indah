@@ -1,6 +1,7 @@
 <?php
 include 'config.php';
 require 'funcs/gambar.php';
+catat_kunjungan();
 
 $produk_selected = null;
 if (isset($_GET['produk']) && is_numeric($_GET['produk'])) {

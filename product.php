@@ -1,6 +1,7 @@
 <?php
 include 'config.php';
 require 'funcs/gambar.php';
+catat_kunjungan();
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header('Location: index.php');

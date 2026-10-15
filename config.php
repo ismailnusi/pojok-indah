@@ -228,6 +228,48 @@ $conn->query("CREATE TABLE IF NOT EXISTS login_gagal (
     INDEX idx_waktu (created_at)
 ) ENGINE=InnoDB");
 
+$conn->query("CREATE TABLE IF NOT EXISTS visitor_stats (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45) NOT NULL DEFAULT '',
+    user_agent VARCHAR(255) NOT NULL DEFAULT '',
+    visit_date DATE NOT NULL,
+    page_url VARCHAR(255) NOT NULL DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_tanggal (visit_date),
+    UNIQUE KEY uniq_kunjungan (visit_date, ip_address, page_url(191))
+) ENGINE=InnoDB");
+
+// Pencatat trafik: 1 baris per IP + halaman per hari (INSERT IGNORE +
+// UNIQUE key mencegah duplikat walau halaman di-refresh berkali-kali).
+// Catatan: JANGAN dipanggil dari admin maupun chat_api (polling).
+function catat_kunjungan() {
+    global $conn;
+    if (php_sapi_name() === 'cli') {
+        return;
+    }
+    $ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+    if ($ua !== '' && preg_match('/bot|crawl|slurp|spider|mediapartners|ahrefs|semrush|mj12|python-requests/i', $ua)) {
+        return;
+    }
+    $ip = mb_substr(ip_client(), 0, 45);
+    if ($ip === '') {
+        return;
+    }
+    $path = parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+    $page = mb_substr(basename((string)$path), 0, 255);
+    if ($page === '' || $page === false || strpos($page, '.') === false) {
+        $page = 'index.php';
+    }
+    $tgl = date('Y-m-d');
+    $stmt = $conn->prepare("INSERT IGNORE INTO visitor_stats (ip_address, user_agent, visit_date, page_url) VALUES (?, ?, ?, ?)");
+    if ($stmt) {
+        $uas = mb_substr($ua, 0, 255);
+        $stmt->bind_param('ssss', $ip, $uas, $tgl, $page);
+        $stmt->execute();
+        $stmt->close();
+    }
+}
+
 $conn->query("CREATE TABLE IF NOT EXISTS password_reset (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) NOT NULL DEFAULT '',

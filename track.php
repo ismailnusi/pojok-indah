@@ -1,5 +1,6 @@
 <?php
 include 'config.php';
+catat_kunjungan();
 
 $p = null;
 $items = null;

@@ -157,6 +157,87 @@ exit;
                 </div>
             </div>
 
+            <?php
+            // ===== Statistik pengunjung =====
+            $sv_total = q_row("SELECT COUNT(*) j FROM visitor_stats");
+            $sv_hari  = q_row("SELECT COUNT(*) j FROM visitor_stats WHERE visit_date = CURDATE()");
+            $sv_unik  = q_row("SELECT COUNT(DISTINCT ip_address) j FROM visitor_stats WHERE visit_date = CURDATE()");
+            $sv_top   = q("SELECT page_url, COUNT(*) j FROM visitor_stats GROUP BY page_url ORDER BY j DESC LIMIT 5");
+            $sv_top_max = 1;
+            $sv_top_rows = array();
+            if ($sv_top) {
+                while ($tr = $sv_top->fetch_assoc()) {
+                    $sv_top_rows[] = $tr;
+                }
+                if ($sv_top_rows) {
+                    $sv_top_max = max(1, (int)$sv_top_rows[0]['j']);
+                }
+            }
+            $sv_week_raw = q("SELECT visit_date t, COUNT(*) j FROM visitor_stats WHERE visit_date >= CURDATE() - INTERVAL 6 DAY GROUP BY visit_date");
+            $sv_week_map = array();
+            if ($sv_week_raw) {
+                while ($wr = $sv_week_raw->fetch_assoc()) {
+                    $sv_week_map[$wr['t']] = (int)$wr['j'];
+                }
+            }
+            $sv_week = array();
+            $sv_week_max = 1;
+            for ($d = 6; $d >= 0; $d--) {
+                $tgl = date('Y-m-d', strtotime("-$d days"));
+                $sv_week[$tgl] = isset($sv_week_map[$tgl]) ? $sv_week_map[$tgl] : 0;
+                $sv_week_max = max($sv_week_max, $sv_week[$tgl]);
+            }
+            ?>
+            <div class="admin-panel">
+                <div class="admin-panel-head">
+                    <h3>📈 Statistik Pengunjung</h3>
+                    <span class="badge badge-proses">7 hari terakhir</span>
+                </div>
+                <div class="admin-stats" style="margin-bottom:20px">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div><p>Total Kunjungan</p><strong><?= $sv_total ? (int)$sv_total['j'] : 0 ?></strong></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div><p>Kunjungan Hari Ini</p><strong><?= $sv_hari ? (int)$sv_hari['j'] : 0 ?></strong></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🧍</div>
+                        <div><p>Pengunjung Unik Hari Ini</p><strong><?= $sv_unik ? (int)$sv_unik['j'] : 0 ?></strong></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏆</div>
+                        <div><p>Halaman Teratas</p><strong><?= $sv_top_rows ? htmlspecialchars($sv_top_rows[0]['page_url']) : '-' ?></strong></div>
+                    </div>
+                </div>
+                <div class="stat-grid-2">
+                    <div>
+                        <h3 style="font-size:0.95rem;margin-bottom:12px">Kunjungan 7 Hari</h3>
+                        <div class="bars">
+                            <?php foreach ($sv_week as $tgl => $jml): ?>
+                                <div class="bar-col" title="<?= $tgl ?>: <?= $jml ?>">
+                                    <div class="bar-val"><?= $jml ?></div>
+                                    <div class="bar-track"><div class="bar-fill" style="height:<?= $sv_week_max ? round($jml / $sv_week_max * 100) : 0 ?>%"></div></div>
+                                    <div class="bar-day"><?= date('d/m', strtotime($tgl)) ?></div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size:0.95rem;margin-bottom:12px">Halaman Paling Sering Dikunjungi</h3>
+                        <?php if (!$sv_top_rows): ?>
+                            <p class="chat-empty">Belum ada data kunjungan.</p>
+                        <?php else: foreach ($sv_top_rows as $tr): ?>
+                            <div class="top-row">
+                                <span class="top-name"><?= htmlspecialchars($tr['page_url']) ?></span>
+                                <span class="top-bar"><span style="width:<?= round($tr['j'] / $sv_top_max * 100) ?>%"></span></span>
+                                <strong><?= (int)$tr['j'] ?></strong>
+                            </div>
+                        <?php endforeach; endif; ?>
+                    </div>
+                </div>
+            </div>
             <div class="admin-panel">
                 <div class="admin-panel-head">
                     <h3>Pesanan Terbaru</h3>
