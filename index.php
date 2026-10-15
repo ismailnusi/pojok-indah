@@ -372,13 +372,18 @@ $kat_populer = q("SELECT * FROM kategori ORDER BY id ASC LIMIT 4");
 
 <script>
 // Lightbox galeri
-var LB_IMGS = [], LB_I = 0;
+var LB_IMGS = [], LB_I = 0, LB_SCROLL = 0;
 function lbOpen(imgs, idx, cap) {
     if (!imgs || !imgs.length) return;
     LB_IMGS = imgs;
     LB_I = Math.min(Math.max(0, idx || 0), imgs.length - 1);
     document.getElementById('lightboxCap').textContent = cap || '';
     lbShow();
+    // Simpan posisi scroll + tahan halaman agar tidak lompat ke atas
+    LB_SCROLL = window.scrollY || document.documentElement.scrollTop || 0;
+    if (LB_SCROLL > 0) {
+        document.body.style.top = '-' + LB_SCROLL + 'px';
+    }
     document.getElementById('lightbox').classList.add('open');
     document.body.style.overflow = 'hidden';
     document.body.classList.add('lb-lock');
@@ -398,6 +403,9 @@ function lbClose() {
     document.getElementById('lightbox').classList.remove('open');
     document.body.style.overflow = '';
     document.body.classList.remove('lb-lock');
+    document.body.style.top = '';
+    // Kembalikan persis ke posisi sebelum modal dibuka
+    window.scrollTo(0, LB_SCROLL);
 }
 document.addEventListener('keydown', function (e) {
     var lb = document.getElementById('lightbox');
